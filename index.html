@@ -9,6 +9,14 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <!-- Icones para o botão "Voltar" e "Download" -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Link para o Manifest do PWA -->
+    <link rel="manifest" href="/manifest.json">
+    <!-- Meta tags para compatibilidade PWA em diferentes navegadores -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="App Seg Motorista">
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+    <meta name="theme-color" content="#4CAF50"/>
 
 
     <style>
@@ -258,9 +266,6 @@
             height: 20px;
         }
 
-        /* Estilos do Modal de Salvamento (REMOVIDO AGORA) */
-        /* .save-modal-overlay foi removido do HTML, então estes estilos não serão mais aplicados */
-
         /* Estilos da Lista de Vídeos Salvos */
         .saved-videos-list {
             width: 100%;
@@ -289,8 +294,6 @@
             background-color: #eef; /* Leve destaque ao passar o mouse */
             transform: translateY(-2px); /* Efeito de elevação */
         }
-        /* Removido o elemento <video> direto dos itens da lista */
-        /* Removido video-info, video-actions direto dos itens da lista */
 
         .saved-video-item .video-name-list { /* Novo estilo para nome na lista */
             font-weight: 700;
@@ -462,7 +465,6 @@
                         <span class="recording-dot"></span>
                         <span id="externalRecordingTimer">00:00</span>
                     </div>
-                    <!-- Removida a mensagem sobre simulação, pois agora salvamos no IndexedDB -->
                 </div>
             </div>
         </div>
@@ -471,7 +473,6 @@
             <button id="startButton" class="button button-primary">Iniciar Gravação</button>
             <button id="stopButton" class="button button-secondary" disabled>Parar Gravação</button>
             <button id="panicButton" class="button button-danger span-full">Pânico!</button>
-            <!-- Novo botão para ir para a tela de vídeos salvos -->
             <button id="viewSavedVideosButton" class="button button-secondary span-full">Ver Vídeos Salvos</button>
         </div>
 
@@ -485,7 +486,6 @@
     <div id="savedVideosScreen" class="saved-videos-screen">
         <h2 class="text-center">Vídeos Salvos</h2>
         <div id="savedVideosList" class="saved-videos-list">
-            <!-- Os nomes dos vídeos salvos serão injetados aqui pelo JavaScript como itens clicáveis -->
             <p class="text-gray-500 text-center mt-4" id="noVideosMessage">Nenhum vídeo salvo ainda.</p>
         </div>
         <button id="backToAppButton" class="back-button">
@@ -500,7 +500,7 @@
         <div class="video-details">
             <p id="currentVideoName" class="video-name"></p>
             <p id="currentVideoDate" class="video-date"></p>
-            <p id="currentVideoExpiration" class="video-expiration-info"></p> <!-- Info de expiração no player -->
+            <p id="currentVideoExpiration" class="video-expiration-info"></p>
         </div>
         <div class="player-actions">
             <button id="downloadCurrentVideoButton" class="btn-download-player"><i class="fas fa-download"></i> Baixar</button>
@@ -647,9 +647,7 @@
                 if (mediaRecorderInternal && mediaRecorderInternal.state !== 'inactive') {
                     mediaRecorderInternal.stop();
                 }
-                // CORREÇÃO: Usar .state !== 'inactive' para MediaRecorderExternal também.
-                // A propriedade 'deviceState' não existe no MediaRecorder, é do MediaStreamTrack.
-                if (mediaRecorderExternal && mediaRecorderExternal.state !== 'inactive') {
+                if (mediaRecorderExternal && mediaRecorderExternal.state !== 'inactive') { 
                     mediaRecorderExternal.stop();
                 }
                 isRecording = false;
@@ -814,7 +812,7 @@
             try {
                 internalCameraStream = await navigator.mediaDevices.getUserMedia({
                     video: { facingMode: 'user' },
-                    audio: true // Solicita áudio para câmera interna
+                    audio: true 
                 });
                 internalCameraFeed.srcObject = internalCameraStream;
                 showMessageBox('Câmera interna (frontal) ativada.', 'success');
@@ -827,14 +825,13 @@
             try {
                 externalCameraStream = await navigator.mediaDevices.getUserMedia({
                     video: { facingMode: 'environment' },
-                    audio: true // SOLICITA ÁUDIO PARA CÂMERA EXTERNA TAMBÉM
+                    audio: true 
                 });
                 externalCameraFeed.srcObject = externalCameraStream;
                 showMessageBox('Câmera externa (traseira) ativada.', 'success');
                 externalCameraSuccess = true;
             } catch (err) {
                 console.error('Erro ao iniciar a câmera externa:', err);
-                // CORREÇÃO: Crase de fechamento faltante no template literal
                 showMessageBox(`Erro ao iniciar a câmera externa: ${err.name} - ${err.message}. Verifique as permissões.`, 'error');
             }
 
@@ -1028,9 +1025,9 @@
                 const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
 
                 if (hours > 0) {
-                    timeLeftString = `Expira em: ${hours}h ${minutes}m`;
+                    timeLeftString = `Expira em: ${hours}h ${String(minutes).padStart(2, '0')}m`;
                 } else if (minutes > 0) {
-                    timeLeftString = `Expira em: ${minutes}m ${seconds}s`;
+                    timeLeftString = `Expira em: ${minutes}m ${String(seconds).padStart(2, '0')}s`;
                 } else {
                     timeLeftString = `Expira em: ${seconds}s`;
                 }
@@ -1084,7 +1081,7 @@
                 } else {
                     const hours = Math.floor(timeLeft / (1000 * 60 * 60));
                     const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
-                    currentVideoExpiration.textContent = `Expira em: ${hours}h ${minutes}m`;
+                    currentVideoExpiration.textContent = `Expira em: ${hours}h ${String(minutes).padStart(2, '0')}m`; // Formato HHh MMm
                     currentVideoExpiration.classList.remove('expired');
                     downloadCurrentVideoButton.disabled = false;
                 }
@@ -1120,7 +1117,7 @@
             }
         }
 
-        // Função para cancelar o salvamento (mantida por enquanto, mas o modal foi removido)
+        // Função para cancelar o salvamento (este modal foi removido do HTML)
         function cancelSave() {
             showMessageBox('Salvamento cancelado. Os vídeos não foram salvos.', 'info');
             internalVideoBlob = null;
@@ -1148,7 +1145,7 @@
 
         const topRightLogoutButton = document.getElementById('topRightLogoutButton');
 
-        // Removida a referência ao saveModalOverlay e botões internos, pois o modal foi removido
+        // Referências ao modal de salvamento não são mais necessárias aqui, pois o modal foi removido do HTML
         // const saveModalOverlay = document.getElementById('saveModalOverlay');
         // const saveToPhoneButton = document.getElementById('saveToPhoneButton');
         // const cancelSaveButton = document.getElementById('cancelSaveButton');
@@ -1288,7 +1285,20 @@
             }
             updateButtonStates();
         });
-        
+
+        // --- Registro do Service Worker para PWA ---
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(registration => {
+                        console.log('Service Worker registrado com sucesso:', registration);
+                    })
+                    .catch(error => {
+                        console.error('Falha no registro do Service Worker:', error);
+                        showMessageBox('Erro ao registrar Service Worker. Funcionalidades offline podem não estar disponíveis.', 'error');
+                    });
+            });
+        }
     </script>
 </body>
 </html>
