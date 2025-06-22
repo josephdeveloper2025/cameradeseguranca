@@ -1,17 +1,17 @@
 const CACHE_NAME = 'app-seg-motorista-cache-v1';
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/manifest.json',
+  '/cameradeseguranca/', // A URL raiz do seu app no GitHub Pages
+  '/cameradeseguranca/index.html',
+  '/cameradeseguranca/manifest.json',
   // Seus ícones (você precisará criar a pasta 'icons' e colocar as imagens lá)
-  '/icons/icon-72x72.png',
-  '/icons/icon-96x96.png',
-  '/icons/icon-128x128.png',
-  '/icons/icon-144x144.png',
-  '/icons/icon-152x152.png',
-  '/icons/icon-192x192.png',
-  '/icons/icon-384x384.png',
-  '/icons/icon-512x512.png',
+  '/cameradeseguranca/icons/icon-72x72.png',
+  '/cameradeseguranca/icons/icon-96x96.png',
+  '/cameradeseguranca/icons/icon-128x128.png',
+  '/cameradeseguranca/icons/icon-144x144.png',
+  '/cameradeseguranca/icons/icon-152x152.png',
+  '/cameradeseguranca/icons/icon-192x192.png',
+  '/cameradeseguranca/icons/icon-384x384.png',
+  '/cameradeseguranca/icons/icon-512x512.png',
   // URLs de CDN (pode ser útil para offline, mas verifique o cache do navegador)
   'https://cdn.tailwindcss.com',
   'https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap',
