@@ -7,6 +7,9 @@
     <!-- Inclui Tailwind CSS para estilização rápida e responsiva -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Icones para o botão "Voltar" -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
 
     <style>
         /* Estilos base para o corpo da página */
@@ -190,7 +193,7 @@
         }
 
         /* --- Estilos para as telas de Login e App --- */
-        .login-screen, .app-screen {
+        .login-screen, .app-screen, .saved-videos-screen {
             display: none; /* Controlado via JS */
             width: 100%;
             max-width: 500px;
@@ -203,7 +206,7 @@
             align-items: center;
             gap: 15px;
         }
-        .login-screen h2 {
+        .login-screen h2, .saved-videos-screen h2 {
             font-size: 1.8rem;
             font-weight: bold;
             color: #333;
@@ -224,7 +227,6 @@
             cursor: pointer;
             transition: background-color 0.3s ease, transform 0.3s ease;
             box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
-            /* Removido display: none; daqui, a classe 'hidden' no HTML controlará isso */
         }
         #topRightLogoutButton:hover {
             background-color: #e53935;
@@ -310,16 +312,8 @@
             box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
             border: none;
         }
-        .save-modal-actions .btn-save-drive {
-            background-image: linear-gradient(to right, #4285F4, #669df6); /* Azul Google */
-            color: white;
-        }
-        .save-modal-actions .btn-save-drive:hover {
-            background-image: linear-gradient(to right, #669df6, #8ab7f9);
-            transform: translateY(-1px);
-        }
-        .save-modal-actions .btn-save-phone {
-            background-image: linear-gradient(to right, #1a73e8, #4285F4); /* Azul mais escuro */
+        .save-modal-actions .btn-save-phone { /* Renomeado para refletir a única opção */
+            background-image: linear-gradient(to right, #1a73e8, #4285F4); /* Azul padrão */
             color: white;
         }
         .save-modal-actions .btn-save-phone:hover {
@@ -334,11 +328,60 @@
         .save-modal-actions .btn-cancel-save:hover {
             background-color: #e0e0e0;
         }
+
+        /* Estilos da Lista de Vídeos Salvos */
+        .saved-videos-list {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 400px; /* Limita a altura para rolagem */
+            overflow-y: auto; /* Adiciona barra de rolagem */
+            padding-right: 5px; /* Espaço para a barra de rolagem */
+        }
+        .saved-video-item {
+            background-color: #f8f8f8;
+            padding: 10px 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start; /* Alinha o texto à esquerda */
+            gap: 5px;
+        }
+        .saved-video-item p {
+            margin: 0;
+            font-size: 0.9em;
+            color: #333;
+        }
+        .saved-video-item .video-name {
+            font-weight: 600;
+            color: #0056b3; /* Azul para o nome do vídeo */
+            word-break: break-all; /* Quebra palavras longas */
+        }
+        .saved-video-item .video-date {
+            font-size: 0.8em;
+            color: #666;
+        }
+        .saved-videos-screen .back-button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .saved-videos-screen .back-button:hover {
+            background-color: #0056b3;
+        }
     </style>
 </head>
 <body>
     <!-- Botão Sair Fixo no Canto Superior Direito -->
-    <!-- Adicionada a classe 'hidden' diretamente no HTML para ocultar por padrão -->
     <button id="topRightLogoutButton" class="hidden">Sair</button>
 
     <!-- Tela de Login -->
@@ -395,6 +438,8 @@
             <button id="startButton" class="button button-primary">Iniciar Gravação</button>
             <button id="stopButton" class="button button-secondary" disabled>Parar Gravação</button>
             <button id="panicButton" class="button button-danger span-full">Pânico!</button>
+            <!-- Novo botão para ir para a tela de vídeos salvos -->
+            <button id="viewSavedVideosButton" class="button button-secondary span-full">Ver Vídeos Salvos</button>
         </div>
 
         <div id="messageBox" class="message-box"></div>
@@ -405,11 +450,23 @@
         <div class="save-modal-content">
             <h3>Como você gostaria de salvar os vídeos?</h3>
             <div class="save-modal-actions">
-                <button id="saveToDriveButton" class="btn-save-drive">Salvar no Google Drive</button>
+                <!-- Removido o botão "Salvar no Google Drive" -->
                 <button id="saveToPhoneButton" class="btn-save-phone">Salvar no Telefone</button>
                 <button id="cancelSaveButton" class="btn-cancel-save">Cancelar</button>
             </div>
         </div>
+    </div>
+
+    <!-- Nova Tela para Vídeos Salvos (inicialmente oculta) -->
+    <div id="savedVideosScreen" class="saved-videos-screen">
+        <h2 class="text-center">Vídeos Salvos</h2>
+        <div id="savedVideosList" class="saved-videos-list">
+            <!-- Os vídeos salvos serão injetados aqui pelo JavaScript -->
+            <p class="text-gray-500 text-center mt-4" id="noVideosMessage">Nenhum vídeo salvo ainda.</p>
+        </div>
+        <button id="backToAppButton" class="back-button">
+            <i class="fas fa-arrow-left"></i> Voltar
+        </button>
     </div>
 
     <!-- Script principal do aplicativo: Consolidado e movido para o final do body -->
@@ -462,9 +519,16 @@
 
         // Elementos do Modal de Salvamento
         const saveModalOverlay = document.getElementById('saveModalOverlay');
-        const saveToDriveButton = document.getElementById('saveToDriveButton');
-        const saveToPhoneButton = document.getElementById('saveToPhoneButton');
+        const saveToPhoneButton = document.getElementById('saveToPhoneButton'); // Agora é o único botão de salvamento
         const cancelSaveButton = document.getElementById('cancelSaveButton');
+
+        // Elementos da Nova Tela de Vídeos Salvos
+        const savedVideosScreen = document.getElementById('savedVideosScreen');
+        const savedVideosList = document.getElementById('savedVideosList');
+        const viewSavedVideosButton = document.getElementById('viewSavedVideosButton');
+        const backToAppButton = document.getElementById('backToAppButton');
+        const noVideosMessage = document.getElementById('noVideosMessage');
+
 
         // Variáveis de estado da câmera e gravação
         let mediaRecorderInternal;
@@ -475,7 +539,7 @@
         let recordedChunksExternal = [];
         let isRecording = false; // Flag para controlar se ALGUMA gravação está ativa
         let currentUserId = null; // Para armazenar o ID do usuário logado
-        let currentUserEmail = null; // Para armazenar o e-mail do usuário logado (para salvar no Drive simulado)
+        let currentUserEmail = null; // Para armazenar o e-mail do usuário logado
 
         let timerInterval;
         let secondsRecorded = 0;
@@ -491,6 +555,18 @@
             const minutes = Math.floor(totalSeconds / 60);
             const seconds = totalSeconds % 60;
             return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
+
+        // Função para formatar a data e hora atual para o nome do arquivo e exibição
+        function formatDateTimeForFilename() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            return `${year}-${month}-${day}_${hours}-${minutes}-${seconds}`;
         }
 
         // Função para iniciar o cronômetro e mostrar overlays
@@ -708,49 +784,45 @@
             saveModalOverlay.classList.add('active');
         }
 
-        // Função para salvar no Google Drive (simulado)
-        function saveToGoogleDrive() {
-            saveModalOverlay.classList.remove('active'); // Esconde o modal
-            if (currentUserId && currentUserEmail) {
-                showMessageBox(`Simulando salvamento no Google Drive para ${currentUserEmail}... (Funcionalidade real exige integração com Google Drive API)`, 'authentic');
-                console.log(`[SIMULAÇÃO] Salvar vídeo interno no Google Drive para ${currentUserEmail}. Blob:`, internalVideoBlob);
-                console.log(`[SIMULAÇÃO] Salvar vídeo externo no Google Drive para ${currentUserEmail}. Blob:`, externalVideoBlob);
-            } else {
-                showMessageBox('Não foi possível salvar no Google Drive: usuário não logado ou e-mail não disponível.', 'error');
-            }
-            // Resetar blobs após a "tentativa" de salvamento
-            internalVideoBlob = null;
-            externalVideoBlob = null;
-        }
-
-        // Função para salvar no Telefone (dispara download)
+        // Função para salvar no Telefone (dispara download e armazena metadados)
         function saveToPhone() {
             saveModalOverlay.classList.remove('active'); // Esconde o modal
             let savedCount = 0;
+            const dateTime = formatDateTimeForFilename(); // Obtém a data e hora para o nome
+
+            // Array para armazenar metadados dos vídeos salvos
+            let savedVideosMetadata = JSON.parse(localStorage.getItem('savedVideos')) || [];
 
             if (internalVideoBlob) {
+                const internalFileName = `video_interno_${dateTime}.webm`;
                 const url = URL.createObjectURL(internalVideoBlob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `video_interno_${new Date().toISOString()}.webm`;
+                a.download = internalFileName;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
                 savedCount++;
+                savedVideosMetadata.push({ name: internalFileName, date: new Date().toLocaleString(), type: 'internal' });
             }
 
             if (externalVideoBlob) {
+                const externalFileName = `video_externo_${dateTime}.webm`;
                 const url = URL.createObjectURL(externalVideoBlob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `video_externo_${new Date().toISOString()}.webm`;
+                a.download = externalFileName;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
                 savedCount++;
+                savedVideosMetadata.push({ name: externalFileName, date: new Date().toLocaleString(), type: 'external' });
             }
+
+            // Salva os metadados no localStorage
+            localStorage.setItem('savedVideos', JSON.stringify(savedVideosMetadata));
 
             if (savedCount > 0) {
                 showMessageBox(`Vídeos salvos no seu telefone (${savedCount} arquivos).`, 'success');
@@ -760,6 +832,9 @@
             // Resetar blobs após salvamento
             internalVideoBlob = null;
             externalVideoBlob = null;
+
+            // Recarregar a lista de vídeos salvos caso o usuário navegue para essa tela
+            displaySavedVideos();
         }
 
         // Função para cancelar o salvamento
@@ -770,6 +845,29 @@
             internalVideoBlob = null;
             externalVideoBlob = null;
         }
+
+        // Função para exibir a lista de vídeos salvos
+        function displaySavedVideos() {
+            savedVideosList.innerHTML = ''; // Limpa a lista existente
+            const savedVideos = JSON.parse(localStorage.getItem('savedVideos')) || [];
+
+            if (savedVideos.length === 0) {
+                noVideosMessage.classList.remove('hidden');
+                savedVideosList.appendChild(noVideosMessage);
+            } else {
+                noVideosMessage.classList.add('hidden'); // Oculta a mensagem "Nenhum vídeo salvo"
+                savedVideos.forEach(video => {
+                    const videoItem = document.createElement('div');
+                    videoItem.classList.add('saved-video-item');
+                    videoItem.innerHTML = `
+                        <p class="video-name">${video.name}</p>
+                        <p class="video-date">Gravado em: ${video.date}</p>
+                    `;
+                    savedVideosList.appendChild(videoItem);
+                });
+            }
+        }
+
 
         // --- Event Listeners para Botões de Controle ---
         startButton.addEventListener('click', startSimultaneousRecording);
@@ -794,25 +892,41 @@
         });
 
         // Event Listeners para o Modal de Salvamento
-        saveToDriveButton.addEventListener('click', saveToGoogleDrive);
-        saveToPhoneButton.addEventListener('click', saveToPhone);
+        saveToPhoneButton.addEventListener('click', saveToPhone); // Apenas o botão de salvar no telefone
         cancelSaveButton.addEventListener('click', cancelSave);
+
+        // Event listeners para navegação
+        viewSavedVideosButton.addEventListener('click', () => {
+            showScreen('savedVideos'); // Vai para a tela de vídeos salvos
+            displaySavedVideos(); // Atualiza a lista quando a tela é mostrada
+        });
+        backToAppButton.addEventListener('click', () => {
+            showScreen('app'); // Volta para a tela principal do aplicativo
+        });
 
         // --- Funções de Login e Logout do Firebase ---
 
-        // Função para mostrar a tela correta (login ou app)
+        // Função para mostrar a tela correta (login, app ou savedVideos)
         function showScreen(screenId) {
+            loginScreen.style.display = 'none';
+            appScreen.style.display = 'none';
+            savedVideosScreen.style.display = 'none'; // Nova tela
+            topRightLogoutButton.classList.add('hidden'); // Oculta por padrão
+
             if (screenId === 'login') {
                 loginScreen.style.display = 'flex';
-                appScreen.style.display = 'none';
-                topRightLogoutButton.classList.add('hidden'); // Esconde o botão Sair fixo
                 stopSimultaneousRecording(); // Garante que a gravação pare ao deslogar/sair
                 stopCameraStreams(); // Para as streams da câmera
             } else if (screenId === 'app') {
-                loginScreen.style.display = 'none';
                 appScreen.style.display = 'flex';
                 topRightLogoutButton.classList.remove('hidden'); // Mostra o botão Sair fixo
                 startCameraStreams(); // Inicia as câmeras apenas quando o app está visível
+            } else if (screenId === 'savedVideos') {
+                savedVideosScreen.style.display = 'flex';
+                topRightLogoutButton.classList.remove('hidden'); // Mantém o botão Sair visível
+                // Não inicia câmeras aqui, pois é uma tela de visualização
+                stopSimultaneousRecording(); // Para gravação se houver ao ir para essa tela
+                stopCameraStreams(); // Para streams de câmera ao ir para essa tela
             }
         }
 
@@ -841,7 +955,7 @@
             }
         });
 
-        // Event listener para o botão de logout do painel fixo
+        // Event listener para o botão de logout fixo
         topRightLogoutButton.addEventListener('click', async () => {
             try {
                 await signOut(auth);
