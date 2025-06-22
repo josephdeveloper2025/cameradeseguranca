@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App Segurança Motorista</title>
+    <!-- Inclui Tailwind CSS para estilização rápida e responsiva -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* Estilos base para o corpo da página */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh; /* Garante que ocupe a altura total da viewport */
+            margin: 0;
+            padding: 80px 10px 10px 10px; /* Adiciona padding superior para o elemento fixo */
+            box-sizing: border-box;
+        }
+        /* Container principal do aplicativo */
+        .container {
+            background-color: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            width: 100%;
+            max-width: 680px; /* Largura máxima um pouco maior para telas grandes */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 15px; /* Padding ajustado */
+            gap: 15px; /* Espaçamento entre seções */
+            margin-top: -70px; /* Compensa o padding do body puxando o container para cima */
+        }
+        /* Estilos para o grupo de vídeos (câmeras) */
+        .video-group {
+            display: flex;
+            flex-direction: column; /* Padrão: vídeos empilhados para mobile */
+            width: 100%;
+            gap: 12px; /* Espaçamento entre os vídeos */
+        }
+        /* Estilos para a pré-visualização de cada vídeo */
+        .video-preview {
+            position: relative;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        /* Wrapper para manter o aspecto ratio do vídeo (16:9) */
+        .video-wrapper {
+            position: relative;
+            width: 100%;
+            padding-top: 56.25%; /* 16:9 Aspect Ratio (9 / 16 * 100%) */
+            background-color: #2c3e50; /* Cor escura para preencher enquanto vídeo não carrega */
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        /* Estilos para o elemento de vídeo dentro do wrapper de aspecto ratio */
+        video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border: 2px solid #ddd;
+            display: block;
+        }
+        /* Responsividade para telas maiores (tablets e desktops) */
+        @media (min-width: 600px) { /* Breakpoint ligeiramente menor para Tablets */
+            .video-group {
+                flex-direction: row; /* Vídeos lado a lado */
+                justify-content: space-between; /* Espaço entre os vídeos */
+            }
+            .video-preview {
+                width: 49%; /* Ajuste para ter um pequeno gap no meio */
+            }
+        }
+        /* Controles (botões) */
+        .controls {
+            display: grid; /* Usando grid para melhor controle de layout */
+            grid-template-columns: 1fr; /* Uma coluna por padrão para mobile */
+            gap: 10px; /* Espaçamento entre os botões */
+            width: 100%;
+        }
+        /* Responsividade para botões em telas maiores */
+        @media (min-width: 400px) { /* A partir de uma largura de celular um pouco maior */
+            .controls {
+                grid-template-columns: 1fr 1fr; /* Duas colunas */
+            }
+            .button.span-full { /* Botão Pânico ocupa toda a linha */
+                grid-column: 1 / -1;
+            }
+        }
+        @media (min-width: 600px) { /* Para tablets e desktops */
+            .controls {
+                grid-template-columns: repeat(3, 1fr); /* Três colunas */
+            }
+        }
+
+        /* Estilos gerais dos botões */
+        .button {
+            padding: 12px 15px; /* Padding ajustado para otimizar espaço */
+            border-radius: 10px;
+            font-size: 0.95em; /* Fonte ligeiramente menor para otimização de espaço */
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+            white-space: nowrap; /* Evita que o texto quebre em várias linhas */
+        }
+        .button-primary {
+            background-image: linear-gradient(to right, #4CAF50, #66BB6A);
+            color: white;
+            border: none;
+        }
+        .button-primary:hover {
+            background-image: linear-gradient(to right, #66BB6A, #81C784);
+            transform: translateY(-1px);
+        }
+        .button-danger {
+            background-image: linear-gradient(to right, #f44336, #ef5350);
+            color: white;
+            border: none;
+        }
+        .button-danger:hover {
+            background-image: linear-gradient(to right, #ef5350, #e57373);
+            transform: translateY(-1px);
+        }
+        .button-secondary {
+            background-color: #e0e0e0;
+            color: #333;
+            border: 1px solid #ccc;
+        }
+        .button-secondary:hover {
+            background-color: #d0d0d0;
+        }
+        /* Caixa de mensagens */
+        .message-box {
+            background-color: #ffe0b2;
+            color: #e65100;
+            padding: 10px; /* Padding reduzido */
+            border-radius: 8px;
+            text-align: center;
+            width: 100%;
+            font-weight: 500;
+            margin-top: 8px;
+            display: none; /* Controlado por JS */
+            font-size: 0.9em; /* Fonte menor */
+            word-wrap: break-word; /* Garante que o texto longo se ajuste */
+        }
+        /* Overlay de gravação (cronômetro e indicador) */
+        .recording-overlay {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background-color: rgba(0, 0, 0, 0.65);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 5px;
+            font-size: 0.8em; /* Fonte menor para caber melhor */
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            z-index: 10;
+            display: none; /* Controlado por JS */
+        }
+        .recording-overlay.active {
+            display: flex;
+        }
+        /* Ponto de gravação pulsante */
+        .recording-dot {
+            width: 8px;
+            height: 8px;
+            background-color: red;
+            border-radius: 50%;
+            animation: pulse 1s infinite alternate;
+        }
+        /* Animação de pulso */
+        @keyframes pulse {
+            from { opacity: 1; }
+            to { opacity: 0.5; }
+        }
+
+        /* --- Estilos para as telas de Login e App --- */
+        .login-screen, .app-screen {
+            display: none; /* Controlado via JS */
+            width: 100%;
+            max-width: 500px;
+            background-color: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            box-sizing: border-box;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+        .login-screen h2 {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        /* NOVOS ESTILOS PARA AS INFOS DO USUÁRIO FIXAS NO TOPO */
+        .user-info-fixed {
+            position: fixed;
+            top: 15px; /* Posição do topo */
+            left: 15px; /* Posição da esquerda */
+            z-index: 100; /* Garante que esteja acima de outros elementos */
+            background-color: rgba(255, 255, 255, 0.95); /* Fundo branco semi-transparente */
+            backdrop-filter: blur(5px); /* Efeito de desfoque para navegadores modernos */
+            border-radius: 12px; /* Cantos mais arredondados */
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Sombra sutil */
+            padding: 10px 15px; /* Preenchimento reduzido */
+            display: none; /* Inicialmente oculto, controlado por JS */
+            align-items: center;
+            gap: 10px; /* Espaçamento entre os itens */
+            max-width: 300px; /* Limita a largura */
+            transform: translateX(-100%); /* Começa fora da tela para animar a entrada */
+            transition: transform 0.3s ease-out; /* Animação suave */
+        }
+
+        .user-info-fixed.active {
+            display: flex; /* Exibe como flex */
+            transform: translateX(0); /* Desliza para dentro da tela */
+        }
+
+        .user-info-fixed img {
+            width: 40px; /* Imagem menor */
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid #2196f3;
+            object-fit: cover;
+            flex-shrink: 0; /* Impede que a imagem encolha */
+        }
+
+        .user-info-fixed .user-text-info {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1; /* Permite que o texto ocupe o espaço disponível */
+            white-space: nowrap; /* Impede que nome/e-mail quebrem linha */
+            overflow: hidden; /* Oculta o que transborda */
+            text-overflow: ellipsis; /* Adiciona "..." se o texto for muito longo */
+        }
+
+        .user-info-fixed .user-text-info p {
+            margin: 0; /* Remove margens padrão de parágrafos */
+            font-size: 0.85em; /* Fonte menor */
+            color: #333;
+        }
+        .user-info-fixed .user-text-info p.font-semibold {
+            font-size: 0.95em; /* Fonte ligeiramente maior para o nome */
+            font-weight: 600;
+        }
+
+        .user-info-fixed .logout-button {
+            padding: 6px 10px; /* Botão menor */
+            font-size: 0.8em; /* Texto do botão menor */
+            margin-left: auto; /* Empurra o botão para a direita */
+            border-radius: 8px;
+            background-color: #ef5350;
+            color: white;
+            border: none; /* Remove a borda padrão do button */
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .user-info-fixed .logout-button:hover {
+            background-color: #e53935;
+            transform: translateY(-1px);
+        }
+
+        /* Estilo para o botão de login do Google (personalizado) */
+        #googleSignInButton {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            border: 1px solid #dadce0;
+            background-color: white;
+            font-size: 1.1em;
+            font-weight: 500;
+            color: #3c4043;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        #googleSignInButton:hover {
+            background-color: #f7f7f7;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+        }
+        #googleSignInButton img {
+            width: 20px;
+            height: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- NOVO: Informações do Usuário Fixas no Canto Superior Esquerdo -->
+    <div id="userInfoFixed" class="user-info-fixed">
+        <img id="userPictureFixed" src="" alt="Foto do Usuário">
+        <div class="user-text-info">
+            <p id="userNameDisplayFixed" class="font-semibold text-gray-800"></p>
+            <p id="userEmailDisplayFixed" class="text-sm text-gray-600"></p>
+        </div>
+        <button id="logoutButtonFixed" class="logout-button">Sair</button>
+    </div>
+
+    <!-- Tela de Login -->
+    <div id="loginScreen" class="login-screen">
+        <h2 class="text-center">Acesso ao App de Segurança</h2>
+        <p class="text-gray-600 text-center">Por favor, faça login com sua conta Google para continuar.</p>
+        <!-- Novo botão para login com Google via Firebase -->
+        <button id="googleSignInButton" class="mt-4">
+            <img src="https://img.icons8.com/color/48/000000/google-logo.png" alt="Google logo"/>
+            Entrar com Google
+        </button>
+        <p class="text-xs text-blue-500 mt-4">
+            * O login do Google é gerenciado pelo Firebase Authentication.
+            Certifique-se de que o provedor Google esteja ativado em seu projeto Firebase.
+        </p>
+    </div>
+
+    <!-- Tela Principal do Aplicativo (inicialmente oculta) -->
+    <div id="appScreen" class="app-screen container">
+        <h1 class="text-2xl font-bold text-gray-800 mb-3">
+            App de Segurança do Motorista
+        </h1>
+
+        <!-- O bloco user-info-display original foi removido daqui -->
+        <!-- O ID do Usuário para depuração permanece dentro do appScreen -->
+        <p id="userIdDisplay" class="text-xs text-gray-500 mt-2">ID do Usuário: <span id="userIdValue">N/A</span></p>
+
+        <div class="video-group">
+            <div class="video-preview">
+                <h2 class="text-lg font-semibold text-gray-700 mb-2">Câmera Interna (Frontal)</h2>
+                <div class="video-wrapper">
+                    <video id="internalCameraFeed" autoplay muted playsinline></video>
+                    <div id="internalRecordingOverlay" class="recording-overlay">
+                        <span class="recording-dot"></span>
+                        <span id="internalRecordingTimer">00:00</span>
+                    </div>
+                </div>
+            </div>
+            <div class="video-preview">
+                <h2 class="text-lg font-semibold text-gray-700 mb-2">Câmera Externa (Traseira)</h2>
+                <div class="video-wrapper">
+                    <video id="externalCameraFeed" autoplay muted playsinline></video>
+                    <div id="externalRecordingOverlay" class="recording-overlay">
+                        <span class="recording-dot"></span>
+                        <span id="externalRecordingTimer">00:00</span>
+                    </div>
+                </div>
+                <p class="text-sm text-gray-500 mt-2">
+                    *Gravação simultânea e em segundo plano é uma simulação. Para funcionalidade real, um aplicativo nativo é essencial.
+                </p>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button id="startButton" class="button button-primary">Iniciar Gravação</button>
+            <button id="stopButton" class="button button-secondary" disabled>Parar Gravação</button>
+            <button id="panicButton" class="button button-danger span-full">Pânico!</button>
+        </div>
+
+        <div id="messageBox" class="message-box"></div>
+    </div>
+
+    <!-- Script principal do aplicativo: Consolidado e movido para o final do body -->
+    <script type="module">
+        // Importações do Firebase Auth, Core e Firestore
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // SUA CONFIGURAÇÃO DO FIREBASE (INSERIDA DIRETAMENTE)
+        const firebaseConfig = {
+            apiKey: "AIzaSyA0ZeiPVFXpfh3_XdP1AZ4uIBWNebLtnyc",
+            authDomain: "camera-de-seguranca-ad986.firebaseapp.com",
+            projectId: "camera-de-seguranca-ad986",
+            storageBucket: "camera-de-seguranca-ad986.firebasestorage.app",
+            messagingSenderId: "778511094601",
+            appId: "1:778511094601:web:9f3dcf0ed3f88a06238098",
+            measurementId: "G-6BQB06936N"
+        };
+
+        // A variável __app_id é fornecida pelo ambiente Canvas (ainda usada para Firestore paths)
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+        // Inicializa o Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app); // Inicializa Firestore
+
+        // Elementos da UI
+        const internalCameraFeed = document.getElementById('internalCameraFeed');
+        const externalCameraFeed = document.getElementById('externalCameraFeed');
+        const startButton = document.getElementById('startButton');
+        const stopButton = document.getElementById('stopButton');
+        const panicButton = document.getElementById('panicButton');
+        const messageBox = document.getElementById('messageBox');
+        const internalRecordingOverlay = document.getElementById('internalRecordingOverlay');
+        const internalRecordingTimer = document.getElementById('internalRecordingTimer');
+        const externalRecordingOverlay = document.getElementById('externalRecordingOverlay');
+        const externalRecordingTimer = document.getElementById('externalRecordingTimer');
+
+        // Elementos da UI de Login
+        const loginScreen = document.getElementById('loginScreen');
+        const appScreen = document.getElementById('appScreen');
+        const googleSignInButton = document.getElementById('googleSignInButton');
+        const userIdDisplay = document.getElementById('userIdDisplay'); // Elemento para exibir o User ID
+        const userIdValue = document.getElementById('userIdValue'); // Span para o valor do User ID
+
+        // NOVOS ELEMENTOS DA UI FIXOS (USUÁRIO)
+        const userInfoFixed = document.getElementById('userInfoFixed');
+        const userPictureFixed = document.getElementById('userPictureFixed');
+        const userNameDisplayFixed = document.getElementById('userNameDisplayFixed');
+        const userEmailDisplayFixed = document.getElementById('userEmailDisplayFixed');
+        const logoutButtonFixed = document.getElementById('logoutButtonFixed');
+
+
+        // Variáveis de estado da câmera e gravação
+        let mediaRecorderInternal;
+        let mediaRecorderExternal;
+        let internalCameraStream;
+        let externalCameraStream;
+        let recordedChunksInternal = [];
+        let recordedChunksExternal = [];
+        let isRecording = false; // Flag para controlar se ALGUMA gravação está ativa
+
+        let timerInterval;
+        let secondsRecorded = 0;
+        let currentUserId = null; // Para armazenar o ID do usuário logado
+
+        // --- Funções de Utilitários ---
+
+        // Função para formatar o tempo em MM:SS
+        function formatTime(totalSeconds) {
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
+
+        // Função para iniciar o cronômetro e mostrar overlays
+        function startTimerAndShowOverlays() {
+            secondsRecorded = 0;
+            internalRecordingTimer.textContent = formatTime(secondsRecorded);
+            externalRecordingTimer.textContent = formatTime(secondsRecorded);
+
+            // Ativa os overlays apenas se houver streams ativas
+            if (internalCameraStream) internalRecordingOverlay.classList.add('active');
+            if (externalCameraStream) externalRecordingOverlay.classList.add('active');
+
+            timerInterval = setInterval(() => {
+                secondsRecorded++;
+                internalRecordingTimer.textContent = formatTime(secondsRecorded);
+                externalRecordingTimer.textContent = formatTime(secondsRecorded);
+            }, 1000);
+        }
+
+        // Função para parar o cronômetro e esconder todos os overlays
+        function stopTimerAndHideOverlays() {
+            clearInterval(timerInterval);
+            secondsRecorded = 0;
+            internalRecordingTimer.textContent = '00:00';
+            externalRecordingTimer.textContent = '00:00';
+            internalRecordingOverlay.classList.remove('active');
+            externalRecordingOverlay.classList.remove('active');
+        }
+
+        // Função para exibir mensagens ao usuário
+        function showMessageBox(message, type = 'info') {
+            messageBox.textContent = message;
+            messageBox.classList.remove('hidden');
+            messageBox.classList.add('block');
+
+            messageBox.style.backgroundColor = '';
+            messageBox.style.color = '';
+
+            if (type === 'error') {
+                messageBox.style.backgroundColor = '#ffcdd2'; // Light red
+                messageBox.style.color = '#c62828'; // Dark red
+            } else if (type === 'success') {
+                messageBox.style.backgroundColor = '#c8e6c9'; // Light green
+                messageBox.style.color = '#2e7d32'; // Dark green
+            } else if (type === 'danger') {
+                messageBox.style.backgroundColor = '#ffcdd2'; // Light red
+                messageBox.style.color = '#c62828'; // Dark red
+            } else if (type === 'authentic') {
+                messageBox.style.backgroundColor = '#bbdefb'; /* Azul claro */
+                messageBox.style.color = '#1976d2'; /* Azul escuro */
+            } else { // info
+                messageBox.style.backgroundColor = '#ffe0b2'; // Light orange
+                messageBox.style.color = '#e65100'; // Dark orange
+            }
+            setTimeout(() => {
+                messageBox.classList.remove('block');
+                messageBox.classList.add('hidden');
+            }, 5000);
+        }
+
+        // Gerencia o estado dos botões Iniciar/Parar
+        function updateButtonStates() {
+            startButton.disabled = isRecording;
+            stopButton.disabled = !isRecording;
+        }
+
+        // --- Funções de Controle de Câmera e Gravação ---
+
+        // Função para iniciar as streams das câmeras para visualização
+        async function startCameraStreams() {
+            stopCameraStreams();
+
+            let internalCameraSuccess = false;
+            let externalCameraSuccess = false;
+
+            try {
+                internalCameraStream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'user' },
+                    audio: true
+                });
+                internalCameraFeed.srcObject = internalCameraStream;
+                showMessageBox('Câmera interna (frontal) ativada.', 'success');
+                internalCameraSuccess = true;
+            } catch (err) {
+                console.error('Erro ao acessar a câmera interna:', err);
+                showMessageBox(`Erro ao iniciar a câmera interna: ${err.name} - ${err.message}. Verifique as permissões.`, 'error');
+            }
+
+            try {
+                externalCameraStream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'environment' }
+                });
+                externalCameraFeed.srcObject = externalCameraStream;
+                showMessageBox('Câmera externa (traseira) ativada.', 'success');
+                externalCameraSuccess = true;
+            } catch (err) {
+                console.error('Erro ao acessar a câmera externa:', err);
+                showMessageBox(`Erro ao iniciar a câmera externa: ${err.name} - ${err.message}. Verifique as permissões.`, 'error');
+            }
+
+            if (internalCameraSuccess || externalCameraSuccess) {
+                startButton.disabled = false;
+            } else {
+                startButton.disabled = true;
+            }
+            updateButtonStates();
+        }
+
+        // Função para parar todas as streams das câmeras
+        function stopCameraStreams() {
+            if (internalCameraStream) {
+                internalCameraStream.getTracks().forEach(track => track.stop());
+                internalCameraFeed.srcObject = null;
+                internalCameraStream = null;
+            }
+            if (externalCameraStream) {
+                externalCameraStream.getTracks().forEach(track => track.stop());
+                externalCameraFeed.srcObject = null;
+                externalCameraStream = null;
+            }
+            console.log('Streams das câmeras paradas.');
+        }
+
+        // Função para iniciar a gravação de AMBAS as câmeras (simulação)
+        function startSimultaneousRecording() {
+            if (isRecording) {
+                showMessageBox('A gravação já está em andamento.', 'info');
+                return;
+            }
+
+            let recordingStarted = false;
+
+            if (internalCameraStream) {
+                try {
+                    mediaRecorderInternal = new MediaRecorder(internalCameraStream);
+                    recordedChunksInternal = [];
+                    mediaRecorderInternal.ondataavailable = (event) => {
+                        if (event.data.size > 0) recordedChunksInternal.push(event.data);
+                    };
+                    mediaRecorderInternal.onstop = () => {
+                        const blob = new Blob(recordedChunksInternal, { type: 'video/webm' });
+                        const url = URL.createObjectURL(blob);
+                        console.log('Gravação interna finalizada. URL para download (exemplo):', url);
+                    };
+                    mediaRecorderInternal.start();
+                    showMessageBox('Gravação da câmera interna iniciada.', 'success');
+                    recordingStarted = true;
+                } catch (e) {
+                    console.error('Erro ao iniciar gravação interna:', e);
+                    showMessageBox('Erro ao iniciar gravação da câmera interna.', 'error');
+                }
+            } else {
+                showMessageBox('Câmera interna não ativa para gravação.', 'info');
+            }
+
+            if (externalCameraStream) {
+                try {
+                    mediaRecorderExternal = new MediaRecorder(externalCameraStream);
+                    recordedChunksExternal = [];
+                    mediaRecorderExternal.ondataavailable = (event) => {
+                        if (event.data.size > 0) recordedChunksExternal.push(event.data);
+                    };
+                    mediaRecorderExternal.onstop = () => {
+                        const blob = new Blob(recordedChunksExternal, { type: 'video/webm' });
+                        const url = URL.createObjectURL(blob);
+                        console.log('Gravação externa finalizada. URL para download (exemplo):', url);
+                    };
+                    mediaRecorderExternal.start();
+                    showMessageBox('Gravação da câmera externa iniciada.', 'success');
+                    recordingStarted = true;
+                } catch (e) {
+                    console.error('Erro ao iniciar gravação externa:', e);
+                    showMessageBox('Erro ao iniciar gravação da câmera externa.', 'error');
+                }
+            } else {
+                showMessageBox('Câmera externa não ativa para gravação.', 'info');
+            }
+
+            if (recordingStarted) {
+                isRecording = true;
+                startTimerAndShowOverlays();
+                updateButtonStates();
+                showMessageBox('Gravação de segurança iniciada.', 'success');
+            } else {
+                showMessageBox('Nenhuma câmera disponível para iniciar a gravação.', 'error');
+            }
+        }
+
+        // Função para parar a gravação
+        function stopSimultaneousRecording() {
+            if (!isRecording) {
+                showMessageBox('Nenhuma gravação em andamento para parar.', 'info');
+                return;
+            }
+
+            if (mediaRecorderInternal && mediaRecorderInternal.state !== 'inactive') {
+                mediaRecorderInternal.stop();
+            }
+            if (mediaRecorderExternal && mediaRecorderExternal.state !== 'inactive') {
+                mediaRecorderExternal.stop();
+            }
+
+            isRecording = false;
+            stopTimerAndHideOverlays();
+            updateButtonStates();
+            showMessageBox('Gravação de segurança parada.', 'success');
+        }
+
+        // --- Event Listeners para Botões de Controle ---
+        startButton.addEventListener('click', startSimultaneousRecording);
+        stopButton.addEventListener('click', stopSimultaneousRecording);
+        panicButton.addEventListener('click', () => {
+            stopSimultaneousRecording(); // Para qualquer gravação em andamento
+            showMessageBox('ALERTA DE PÂNICO ATIVADO! Gravação interrompida (simulação de envio de alerta).', 'danger');
+        });
+
+        // --- Funções de Login e Logout do Firebase ---
+
+        // Função para mostrar a tela correta (login ou app)
+        function showScreen(screenId) {
+            if (screenId === 'login') {
+                loginScreen.style.display = 'flex';
+                appScreen.style.display = 'none';
+                userInfoFixed.classList.remove('active'); // Esconde o painel de usuário
+                stopSimultaneousRecording(); // Garante que a gravação pare ao deslogar/sair
+                stopCameraStreams(); // Para as streams da câmera
+            } else if (screenId === 'app') {
+                loginScreen.style.display = 'none';
+                appScreen.style.display = 'flex';
+                userInfoFixed.classList.add('active'); // Mostra o painel de usuário
+                startCameraStreams(); // Inicia as câmeras apenas quando o app está visível
+            }
+        }
+
+        // Event listener para o botão de login do Google
+        googleSignInButton.addEventListener('click', async () => {
+            const provider = new GoogleAuthProvider();
+            try {
+                // Tenta fazer login com um pop-up
+                const result = await signInWithPopup(auth, provider);
+                const user = result.user;
+                console.log("Usuário logado:", user);
+                // onAuthStateChanged irá lidar com a atualização da UI
+            } catch (error) {
+                console.error("Erro no login com Google:", error);
+                let errorMessage = "Erro desconhecido ao tentar login com Google.";
+                if (error.code === 'auth/popup-closed-by-user') {
+                    errorMessage = "Login cancelado. O pop-up de login foi fechado.";
+                } else if (error.code === 'auth/cancelled-popup-request') {
+                    errorMessage = "Login cancelado. Já havia uma solicitação de pop-up.";
+                } else if (error.code === 'auth/operation-not-allowed') {
+                    errorMessage = "O login com Google não está ativado. Ative-o nas configurações de autenticação do Firebase.";
+                } else if (error.code === 'auth/auth-domain-config-error') {
+                    errorMessage = "Erro de configuração de domínio de autenticação. Verifique os domínios autorizados no Firebase.";
+                }
+                showMessageBox(`Erro de login: ${errorMessage}`, 'error');
+            }
+        });
+
+        // Event listener para o botão de logout do painel fixo
+        logoutButtonFixed.addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+                console.log("Usuário deslogado.");
+                // onAuthStateChanged irá lidar com a atualização da UI
+            } catch (error) {
+                console.error("Erro ao deslogar:", error);
+                showMessageBox(`Erro ao deslogar: ${error.message}`, 'error');
+            }
+        });
+
+        // --- Gerenciamento de Estado de Autenticação com Firebase ---
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // Usuário está logado
+                currentUserId = user.uid; // Define o ID do usuário logado
+                userNameDisplayFixed.textContent = user.displayName || "Usuário";
+                userEmailDisplayFixed.textContent = user.email || "Sem e-mail";
+                if (user.photoURL) {
+                    userPictureFixed.src = user.photoURL;
+                    userPictureFixed.classList.remove('hidden'); // Certifica que a imagem não está oculta
+                } else {
+                    userPictureFixed.src = "https://placehold.co/40x40/cccccc/333333?text=User"; // Fallback placeholder
+                    userPictureFixed.classList.remove('hidden');
+                }
+                userIdValue.textContent = currentUserId; // Exibe o ID do usuário no appScreen
+                showScreen('app'); // Mostra a tela principal e o painel fixo
+                showMessageBox(`Bem-vindo(a), ${user.displayName || 'Usuário'}!`, 'success');
+
+            } else {
+                // Usuário não está logado
+                currentUserId = null; // Limpa o ID do usuário
+                userNameDisplayFixed.textContent = "";
+                userEmailDisplayFixed.textContent = "";
+                userPictureFixed.src = "";
+                userPictureFixed.classList.add('hidden'); // Oculta a imagem
+                userIdValue.textContent = "N/A"; // Limpa o ID do usuário no display
+                showScreen('login'); // Mostra a tela de login
+            }
+            updateButtonStates();
+        });
+        
+    </script>
+</body>
+</html>
