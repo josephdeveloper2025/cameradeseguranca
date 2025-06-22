@@ -7,7 +7,7 @@
     <!-- Inclui Tailwind CSS para estilização rápida e responsiva -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <!-- Icones para o botão "Voltar" -->
+    <!-- Icones para o botão "Voltar" e "Download" -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
 
@@ -334,35 +334,73 @@
             width: 100%;
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            max-height: 400px; /* Limita a altura para rolagem */
+            gap: 15px; /* Mais espaço entre os itens de vídeo */
+            max-height: 450px; /* Limita a altura para rolagem */
             overflow-y: auto; /* Adiciona barra de rolagem */
             padding-right: 5px; /* Espaço para a barra de rolagem */
+            padding-bottom: 10px; /* Espaço extra no final */
         }
         .saved-video-item {
             background-color: #f8f8f8;
-            padding: 10px 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            padding: 15px; /* Mais padding */
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08); /* Sombra mais visível */
             display: flex;
             flex-direction: column;
-            align-items: flex-start; /* Alinha o texto à esquerda */
-            gap: 5px;
+            align-items: center; /* Centraliza o conteúdo (vídeo e texto) */
+            gap: 10px;
+            width: 100%;
         }
-        .saved-video-item p {
-            margin: 0;
-            font-size: 0.9em;
-            color: #333;
+        .saved-video-item video {
+            width: 100%; /* Vídeo ocupa 100% da largura do item */
+            height: auto;
+            max-height: 200px; /* Limita a altura do vídeo */
+            border-radius: 8px;
+            object-fit: contain; /* Garante que o vídeo seja totalmente visível dentro do elemento */
+            background-color: black; /* Fundo preto para vídeos com aspect ratio diferente */
+        }
+        .saved-video-item .video-info {
+            width: 100%;
+            text-align: center; /* Centraliza o texto */
         }
         .saved-video-item .video-name {
-            font-weight: 600;
-            color: #0056b3; /* Azul para o nome do vídeo */
-            word-break: break-all; /* Quebra palavras longas */
+            font-weight: 700; /* Mais negrito */
+            color: #212121; /* Cor mais escura */
+            font-size: 1em; /* Tamanho padrão */
+            word-break: break-all;
         }
         .saved-video-item .video-date {
-            font-size: 0.8em;
-            color: #666;
+            font-size: 0.85em; /* Levemente maior */
+            color: #757575; /* Cinza médio */
         }
+        .saved-video-item .video-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .saved-video-item .video-actions button {
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-size: 0.85em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .saved-video-item .video-actions .btn-download {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .saved-video-item .video-actions .btn-download:hover {
+            background-color: #66BB6A;
+        }
+        .saved-video-item .video-actions .btn-delete {
+            background-color: #f44336;
+            color: white;
+        }
+        .saved-video-item .video-actions .btn-delete:hover {
+            background-color: #ef5350;
+        }
+
         .saved-videos-screen .back-button {
             background-color: #007bff;
             color: white;
@@ -471,10 +509,10 @@
 
     <!-- Script principal do aplicativo: Consolidado e movido para o final do body -->
     <script type="module">
-        // Importações do Firebase Auth, Core e Firestore
+        // Importações do Firebase Auth, Core e Firestore (Firestore não mais usado diretamente para vídeos)
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"; // Mantido para compatibilidade, mas não usado para vídeos
 
         // SUA CONFIGURAÇÃO DO FIREBASE (INSERIDA DIRETAMENTE)
         const firebaseConfig = {
@@ -493,7 +531,7 @@
         // Inicializa o Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-        const db = getFirestore(app); // Inicializa Firestore
+        const db = getFirestore(app); // Inicializa Firestore (mantido)
 
         // Elementos da UI
         const internalCameraFeed = document.getElementById('internalCameraFeed');
@@ -784,17 +822,114 @@
             saveModalOverlay.classList.add('active');
         }
 
-        // Função para salvar no Telefone (dispara download e armazena metadados)
-        function saveToPhone() {
+        // Funções do IndexedDB
+        let dbRequest;
+        let dbInstance;
+        const DB_NAME = 'VideoStorageDB';
+        const DB_VERSION = 1;
+        const OBJECT_STORE_NAME = 'videos';
+
+        function openIndexedDB() {
+            return new Promise((resolve, reject) => {
+                dbRequest = indexedDB.open(DB_NAME, DB_VERSION);
+
+                dbRequest.onupgradeneeded = (event) => {
+                    dbInstance = event.target.result;
+                    if (!dbInstance.objectStoreNames.contains(OBJECT_STORE_NAME)) {
+                        dbInstance.createObjectStore(OBJECT_STORE_NAME, { keyPath: 'id' });
+                    }
+                };
+
+                dbRequest.onsuccess = (event) => {
+                    dbInstance = event.target.result;
+                    resolve(dbInstance);
+                };
+
+                dbRequest.onerror = (event) => {
+                    console.error('Erro ao abrir IndexedDB:', event.target.errorCode);
+                    showMessageBox('Erro ao abrir o banco de dados de vídeos. Os vídeos salvos podem não ser persistentes.', 'error');
+                    reject(event.target.errorCode);
+                };
+            });
+        }
+
+        async function addVideoToIndexedDB(videoData) {
+            try {
+                const db = await openIndexedDB();
+                const transaction = db.transaction([OBJECT_STORE_NAME], 'readwrite');
+                const store = transaction.objectStore(OBJECT_STORE_NAME);
+                const request = store.add(videoData);
+
+                request.onsuccess = () => {
+                    console.log('Vídeo adicionado ao IndexedDB:', videoData.id);
+                };
+
+                request.onerror = (event) => {
+                    console.error('Erro ao adicionar vídeo ao IndexedDB:', event.target.errorCode);
+                    showMessageBox('Erro ao salvar vídeo no navegador. Pode não ser exibido na lista.', 'error');
+                };
+            } catch (error) {
+                console.error('Erro na operação IndexedDB:', error);
+            }
+        }
+
+        async function getVideosFromIndexedDB() {
+            return new Promise(async (resolve, reject) => {
+                try {
+                    const db = await openIndexedDB();
+                    const transaction = db.transaction([OBJECT_STORE_NAME], 'readonly');
+                    const store = transaction.objectStore(OBJECT_STORE_NAME);
+                    const request = store.getAll();
+
+                    request.onsuccess = () => {
+                        resolve(request.result);
+                    };
+
+                    request.onerror = (event) => {
+                        console.error('Erro ao buscar vídeos do IndexedDB:', event.target.errorCode);
+                        showMessageBox('Erro ao carregar vídeos salvos.', 'error');
+                        reject(event.target.errorCode);
+                    };
+                } catch (error) {
+                    console.error('Erro ao acessar IndexedDB para buscar:', error);
+                    reject(error);
+                }
+            });
+        }
+
+        async function deleteVideoFromIndexedDB(id) {
+            try {
+                const db = await openIndexedDB();
+                const transaction = db.transaction([OBJECT_STORE_NAME], 'readwrite');
+                const store = transaction.objectStore(OBJECT_STORE_NAME);
+                const request = store.delete(id);
+
+                request.onsuccess = () => {
+                    console.log('Vídeo removido do IndexedDB:', id);
+                    showMessageBox('Vídeo removido com sucesso.', 'success');
+                    displaySavedVideos(); // Recarrega a lista
+                };
+
+                request.onerror = (event) => {
+                    console.error('Erro ao remover vídeo do IndexedDB:', event.target.errorCode);
+                    showMessageBox('Erro ao remover vídeo.', 'error');
+                };
+            } catch (error) {
+                console.error('Erro ao acessar IndexedDB para remover:', error);
+            }
+        }
+
+
+        // Função para salvar no Telefone (dispara download e armazena Blob no IndexedDB)
+        async function saveToPhone() {
             saveModalOverlay.classList.remove('active'); // Esconde o modal
             let savedCount = 0;
             const dateTime = formatDateTimeForFilename(); // Obtém a data e hora para o nome
-
-            // Array para armazenar metadados dos vídeos salvos
-            let savedVideosMetadata = JSON.parse(localStorage.getItem('savedVideos')) || [];
+            const videoId = `${currentUserId || 'anonymous'}_${Date.now()}`; // ID único para o vídeo no IndexedDB
 
             if (internalVideoBlob) {
                 const internalFileName = `video_interno_${dateTime}.webm`;
+                // Dispara download
                 const url = URL.createObjectURL(internalVideoBlob);
                 const a = document.createElement('a');
                 a.href = url;
@@ -804,11 +939,20 @@
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
                 savedCount++;
-                savedVideosMetadata.push({ name: internalFileName, date: new Date().toLocaleString(), type: 'internal' });
+
+                // Adiciona ao IndexedDB
+                await addVideoToIndexedDB({
+                    id: `${videoId}_internal`,
+                    name: internalFileName,
+                    date: new Date().toLocaleString(),
+                    type: 'internal',
+                    blob: internalVideoBlob // Salva o Blob completo
+                });
             }
 
             if (externalVideoBlob) {
                 const externalFileName = `video_externo_${dateTime}.webm`;
+                // Dispara download
                 const url = URL.createObjectURL(externalVideoBlob);
                 const a = document.createElement('a');
                 a.href = url;
@@ -818,14 +962,19 @@
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
                 savedCount++;
-                savedVideosMetadata.push({ name: externalFileName, date: new Date().toLocaleString(), type: 'external' });
+
+                // Adiciona ao IndexedDB
+                await addVideoToIndexedDB({
+                    id: `${videoId}_external`,
+                    name: externalFileName,
+                    date: new Date().toLocaleString(),
+                    type: 'external',
+                    blob: externalVideoBlob // Salva o Blob completo
+                });
             }
 
-            // Salva os metadados no localStorage
-            localStorage.setItem('savedVideos', JSON.stringify(savedVideosMetadata));
-
             if (savedCount > 0) {
-                showMessageBox(`Vídeos salvos no seu telefone (${savedCount} arquivos).`, 'success');
+                showMessageBox(`Vídeos salvos no seu telefone (${savedCount} arquivos) e no navegador.`, 'success');
             } else {
                 showMessageBox('Nenhum vídeo disponível para salvar.', 'info');
             }
@@ -834,7 +983,7 @@
             externalVideoBlob = null;
 
             // Recarregar a lista de vídeos salvos caso o usuário navegue para essa tela
-            displaySavedVideos();
+            displaySavedVideos(); // Garante que a lista esteja atualizada se o usuário for para lá
         }
 
         // Função para cancelar o salvamento
@@ -847,9 +996,9 @@
         }
 
         // Função para exibir a lista de vídeos salvos
-        function displaySavedVideos() {
+        async function displaySavedVideos() {
             savedVideosList.innerHTML = ''; // Limpa a lista existente
-            const savedVideos = JSON.parse(localStorage.getItem('savedVideos')) || [];
+            const savedVideos = await getVideosFromIndexedDB();
 
             if (savedVideos.length === 0) {
                 noVideosMessage.classList.remove('hidden');
@@ -859,10 +1008,54 @@
                 savedVideos.forEach(video => {
                     const videoItem = document.createElement('div');
                     videoItem.classList.add('saved-video-item');
-                    videoItem.innerHTML = `
+
+                    const videoElement = document.createElement('video');
+                    videoElement.controls = true;
+                    videoElement.muted = true; // Começa mudo
+                    videoElement.playsInline = true;
+                    videoElement.src = URL.createObjectURL(video.blob); // Cria URL do Blob para reprodução
+                    videoElement.addEventListener('loadedmetadata', () => {
+                        URL.revokeObjectURL(videoElement.src); // Libera o URL do objeto assim que o vídeo é carregado
+                    });
+
+                    const videoInfoDiv = document.createElement('div');
+                    videoInfoDiv.classList.add('video-info');
+                    videoInfoDiv.innerHTML = `
                         <p class="video-name">${video.name}</p>
                         <p class="video-date">Gravado em: ${video.date}</p>
                     `;
+
+                    const videoActionsDiv = document.createElement('div');
+                    videoActionsDiv.classList.add('video-actions');
+
+                    const downloadButton = document.createElement('button');
+                    downloadButton.classList.add('btn-download');
+                    downloadButton.innerHTML = '<i class="fas fa-download"></i> Baixar Novamente';
+                    downloadButton.onclick = () => {
+                        const url = URL.createObjectURL(video.blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = video.name;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                        showMessageBox(`Baixando novamente: ${video.name}`, 'info');
+                    };
+
+                    const deleteButton = document.createElement('button');
+                    deleteButton.classList.add('btn-delete');
+                    deleteButton.innerHTML = '<i class="fas fa-trash-alt"></i> Excluir';
+                    deleteButton.onclick = () => {
+                        deleteVideoFromIndexedDB(video.id);
+                    };
+
+                    videoActionsDiv.appendChild(downloadButton);
+                    videoActionsDiv.appendChild(deleteButton);
+
+                    videoItem.appendChild(videoElement);
+                    videoItem.appendChild(videoInfoDiv);
+                    videoItem.appendChild(videoActionsDiv);
                     savedVideosList.appendChild(videoItem);
                 });
             }
