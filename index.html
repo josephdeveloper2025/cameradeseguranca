@@ -258,76 +258,8 @@
             height: 20px;
         }
 
-        /* Estilos do Modal de Salvamento */
-        .save-modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.6);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 200; /* Acima de tudo */
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
-        }
-        .save-modal-overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
-        .save-modal-content {
-            background-color: #ffffff;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            text-align: center;
-            max-width: 400px;
-            width: 90%;
-            transform: translateY(-20px);
-            transition: transform 0.3s ease;
-        }
-        .save-modal-overlay.active .save-modal-content {
-            transform: translateY(0);
-        }
-        .save-modal-content h3 {
-            font-size: 1.5em;
-            margin-bottom: 20px;
-            color: #333;
-        }
-        .save-modal-actions {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-        .save-modal-actions button {
-            padding: 12px 20px;
-            border-radius: 10px;
-            font-size: 1.0em;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
-            border: none;
-        }
-        .save-modal-actions .btn-save-phone { /* Renomeado para refletir a única opção */
-            background-image: linear-gradient(to right, #1a73e8, #4285F4); /* Azul padrão */
-            color: white;
-        }
-        .save-modal-actions .btn-save-phone:hover {
-            background-image: linear-gradient(to right, #4285F4, #669df6);
-            transform: translateY(-1px);
-        }
-        .save-modal-actions .btn-cancel-save {
-            background-color: #f0f0f0;
-            color: #555;
-            border: 1px solid #ddd;
-        }
-        .save-modal-actions .btn-cancel-save:hover {
-            background-color: #e0e0e0;
-        }
+        /* Estilos do Modal de Salvamento (REMOVIDO AGORA) */
+        /* .save-modal-overlay foi removido do HTML, então estes estilos não serão mais aplicados */
 
         /* Estilos da Lista de Vídeos Salvos */
         .saved-videos-list {
@@ -371,6 +303,16 @@
             font-size: 0.9em;
             color: #757575;
             text-align: center;
+        }
+        .saved-video-item .video-expiration-info { /* Estilo para o tempo de expiração */
+            font-size: 0.85em;
+            font-weight: 500;
+            color: #007bff; /* Azul para destaque */
+            margin-top: 5px;
+        }
+        .saved-video-item .video-expiration-info.expired { /* Estilo para vídeo expirado */
+            color: #dc3545; /* Vermelho */
+            font-weight: 700;
         }
 
 
@@ -520,10 +462,8 @@
                         <span class="recording-dot"></span>
                         <span id="externalRecordingTimer">00:00</span>
                     </div>
+                    <!-- Removida a mensagem sobre simulação, pois agora salvamos no IndexedDB -->
                 </div>
-                <p class="text-sm text-gray-500 mt-2">
-                    *Gravação simultânea e em segundo plano é uma simulação. Para funcionalidade real, um aplicativo nativo é essencial.
-                </p>
             </div>
         </div>
 
@@ -538,16 +478,8 @@
         <div id="messageBox" class="message-box"></div>
     </div>
 
-    <!-- Modal para Opções de Salvamento -->
-    <div id="saveModalOverlay" class="save-modal-overlay">
-        <div class="save-modal-content">
-            <h3>Salvar os vídeos no telefone?</h3>
-            <div class="save-modal-actions">
-                <button id="saveToPhoneButton" class="btn-save-phone">Salvar no Telefone</button>
-                <button id="cancelSaveButton" class="btn-cancel-save">Cancelar</button>
-            </div>
-        </div>
-    </div>
+    <!-- O Modal para Opções de Salvamento foi REMOVIDO -->
+    <!-- <div id="saveModalOverlay" class="save-modal-overlay"> ... </div> -->
 
     <!-- Nova Tela para Vídeos Salvos (inicialmente oculta) -->
     <div id="savedVideosScreen" class="saved-videos-screen">
@@ -568,6 +500,7 @@
         <div class="video-details">
             <p id="currentVideoName" class="video-name"></p>
             <p id="currentVideoDate" class="video-date"></p>
+            <p id="currentVideoExpiration" class="video-expiration-info"></p> <!-- Info de expiração no player -->
         </div>
         <div class="player-actions">
             <button id="downloadCurrentVideoButton" class="btn-download-player"><i class="fas fa-download"></i> Baixar</button>
@@ -581,10 +514,10 @@
 
     <!-- Script principal do aplicativo: Consolidado e movido para o final do body -->
     <script type="module">
-        // Importações do Firebase Auth, Core e Firestore (Firestore não mais usado diretamente para vídeos)
+        // Importações do Firebase Auth, Core e Firestore
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"; // Mantido para compatibilidade, mas não usado para vídeos
+        import { getFirestore } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"; 
 
         // SUA CONFIGURAÇÃO DO FIREBASE (INSERIDA DIRETAMENTE)
         const firebaseConfig = {
@@ -603,7 +536,7 @@
         // Inicializa o Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-        const db = getFirestore(app); // Inicializa Firestore (mantido)
+        const db = getFirestore(app); 
 
         // Variáveis de estado da câmera e gravação
         let mediaRecorderInternal;
@@ -612,9 +545,9 @@
         let externalCameraStream;
         let recordedChunksInternal = [];
         let recordedChunksExternal = [];
-        let isRecording = false; // Flag para controlar se ALGUMA gravação está ativa
-        let currentUserId = null; // Para armazenar o ID do usuário logado
-        let currentUserEmail = null; // Para armazenar o e-mail do usuário logado
+        let isRecording = false; 
+        let currentUserId = null; 
+        let currentUserEmail = null; 
 
         let timerInterval;
         let secondsRecorded = 0;
@@ -626,17 +559,18 @@
         // Variável para armazenar o ID do vídeo atualmente sendo reproduzido
         let currentlyPlayingVideoId = null;
 
+        // Variável para o intervalo de atualização dos contadores de expiração
+        let expirationCheckInterval = null;
 
-        // --- Funções Auxiliares (movidas para o topo do escopo para evitar ReferenceError) ---
 
-        // Função para formatar o tempo em MM:SS
+        // --- Funções Auxiliares Comuns (definidas no topo para acessibilidade) ---
+
         function formatTime(totalSeconds) {
             const minutes = Math.floor(totalSeconds / 60);
             const seconds = totalSeconds % 60;
             return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
         }
 
-        // Função para formatar a data e hora atual para o nome do arquivo e exibição
         function formatDateTimeForFilename() {
             const now = new Date();
             const year = now.getFullYear();
@@ -648,13 +582,46 @@
             return `${year}-${month}-${day}_${hours}-${minutes}-${seconds}`;
         }
 
-        // Função para iniciar o cronômetro e mostrar overlays
+        function showMessageBox(message, type = 'info') {
+            messageBox.textContent = message;
+            messageBox.classList.remove('hidden');
+            messageBox.classList.add('block');
+
+            messageBox.style.backgroundColor = '';
+            messageBox.style.color = '';
+
+            if (type === 'error') {
+                messageBox.style.backgroundColor = '#ffcdd2';
+                messageBox.style.color = '#c62828';
+            } else if (type === 'success') {
+                messageBox.style.backgroundColor = '#c8e6c9';
+                messageBox.style.color = '#2e7d32';
+            } else if (type === 'danger') {
+                messageBox.style.backgroundColor = '#ffcdd2';
+                messageBox.style.color = '#c62828';
+            } else if (type === 'authentic') {
+                messageBox.style.backgroundColor = '#bbdefb';
+                messageBox.style.color = '#1976d2';
+            } else { // info
+                messageBox.style.backgroundColor = '#ffe0b2';
+                messageBox.style.color = '#e65100';
+            }
+            setTimeout(() => {
+                messageBox.classList.remove('block');
+                messageBox.classList.add('hidden');
+            }, 5000);
+        }
+
+        function updateButtonStates() {
+            startButton.disabled = isRecording;
+            stopButton.disabled = !isRecording;
+        }
+
         function startTimerAndShowOverlays() {
             secondsRecorded = 0;
             internalRecordingTimer.textContent = formatTime(secondsRecorded);
             externalRecordingTimer.textContent = formatTime(secondsRecorded);
 
-            // Ativa os overlays apenas se houver streams ativas
             if (internalCameraStream) internalRecordingOverlay.classList.add('active');
             if (externalCameraStream) externalRecordingOverlay.classList.add('active');
 
@@ -665,7 +632,6 @@
             }, 1000);
         }
 
-        // Função para parar o cronômetro e esconder todos os overlays
         function stopTimerAndHideOverlays() {
             clearInterval(timerInterval);
             secondsRecorded = 0;
@@ -675,50 +641,15 @@
             externalRecordingOverlay.classList.remove('active');
         }
 
-        // Função para exibir mensagens ao usuário
-        function showMessageBox(message, type = 'info') {
-            messageBox.textContent = message;
-            messageBox.classList.remove('hidden');
-            messageBox.classList.add('block');
-
-            messageBox.style.backgroundColor = '';
-            messageBox.style.color = '';
-
-            if (type === 'error') {
-                messageBox.style.backgroundColor = '#ffcdd2'; // Light red
-                messageBox.style.color = '#c62828'; // Dark red
-            } else if (type === 'success') {
-                messageBox.style.backgroundColor = '#c8e6c9'; // Light green
-                messageBox.style.color = '#2e7d32'; // Dark green
-            } else if (type === 'danger') {
-                messageBox.style.backgroundColor = '#ffcdd2'; // Light red
-                messageBox.style.color = '#c62828'; // Dark red
-            } else if (type === 'authentic') {
-                messageBox.style.backgroundColor = '#bbdefb'; /* Azul claro */
-                messageBox.style.color = '#1976d2'; /* Azul escuro */
-            } else { // info
-                messageBox.style.backgroundColor = '#ffe0b2'; // Light orange
-                messageBox.style.color = '#e65100'; // Dark orange
-            }
-            setTimeout(() => {
-                messageBox.classList.remove('block');
-                messageBox.classList.add('hidden');
-            }, 5000);
-        }
-
-        // Gerencia o estado dos botões Iniciar/Parar
-        function updateButtonStates() {
-            startButton.disabled = isRecording;
-            stopButton.disabled = !isRecording;
-        }
-
         // Função para parar gravação e streams (centralizada para evitar repetição)
         function stopSimultaneousRecording() {
             if (isRecording) {
                 if (mediaRecorderInternal && mediaRecorderInternal.state !== 'inactive') {
                     mediaRecorderInternal.stop();
                 }
-                if (mediaRecorderExternal && mediaRecorderExternal.deviceState !== 'inactive') { // Correção aqui: deviceState para MediaStreamTrack
+                // CORREÇÃO: Usar .state !== 'inactive' para MediaRecorderExternal também.
+                // A propriedade 'deviceState' não existe no MediaRecorder, é do MediaStreamTrack.
+                if (mediaRecorderExternal && mediaRecorderExternal.state !== 'inactive') {
                     mediaRecorderExternal.stop();
                 }
                 isRecording = false;
@@ -742,189 +673,13 @@
             console.log('Streams das câmeras paradas.');
         }
 
-
-        // --- Funções de Controle de Câmera e Gravação ---
-
-        // Função para iniciar as streams das câmeras para visualização
-        async function startCameraStreams() {
-            stopCameraStreams();
-
-            let internalCameraSuccess = false;
-            let externalCameraSuccess = false;
-
-            try {
-                internalCameraStream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: 'user' },
-                    audio: true
-                });
-                internalCameraFeed.srcObject = internalCameraStream;
-                showMessageBox('Câmera interna (frontal) ativada.', 'success');
-                internalCameraSuccess = true;
-            } catch (err) {
-                console.error('Erro ao acessar a câmera interna:', err);
-                showMessageBox(`Erro ao iniciar a câmera interna: ${err.name} - ${err.message}. Verifique as permissões.`, 'error');
-            }
-
-            try {
-                externalCameraStream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: 'environment' }
-                });
-                externalCameraFeed.srcObject = externalCameraStream;
-                showMessageBox('Câmera externa (traseira) ativada.', 'success');
-                externalCameraSuccess = true;
-            } catch (err) {
-                console.error('Erro ao acessar a câmera externa:', err);
-                showMessageBox(`Erro ao iniciar a câmera externa: ${err.name} - ${err.message}. Verifique as permissões.`, 'error');
-            }
-
-            if (internalCameraSuccess || externalCameraSuccess) {
-                startButton.disabled = false;
-            } else {
-                startButton.disabled = true;
-            }
-            updateButtonStates();
-        }
-
-        // Função para iniciar a gravação de AMBAS as câmeras (simulação)
-        function startSimultaneousRecording() {
-            if (isRecording) {
-                showMessageBox('A gravação já está em andamento.', 'info');
-                return;
-            }
-
-            let recordingStarted = false;
-
-            // Zera os blobs anteriores ao iniciar nova gravação
-            internalVideoBlob = null;
-            externalVideoBlob = null;
-            recordedChunksInternal = [];
-            recordedChunksExternal = [];
-
-            // Define um MIME type preferencial e um fallback
-            const preferredMimeType = 'video/webm; codecs=vp9';
-            const fallbackMimeType = 'video/webm';
-            let internalMimeType = '';
-            let externalMimeType = '';
-
-            // --- Gravação da Câmera Interna ---
-            if (internalCameraStream) {
-                try {
-                    // Verifica o suporte ao MIME type preferencial
-                    if (MediaRecorder.isTypeSupported(preferredMimeType)) {
-                        internalMimeType = preferredMimeType;
-                    } else if (MediaRecorder.isTypeSupported(fallbackMimeType)) {
-                        internalMimeType = fallbackMimeType;
-                    } else {
-                        showMessageBox('Nenhum formato de vídeo suportado para gravação da câmera interna.', 'error');
-                        console.error('Nenhum formato de vídeo suportado para gravação da câmera interna.');
-                        return; // Não pode gravar se não há suporte
-                    }
-
-                    mediaRecorderInternal = new MediaRecorder(internalCameraStream, { mimeType: internalMimeType });
-                    console.log(`MediaRecorder Interno criado com MIME type: ${internalMimeType}`);
-
-                    mediaRecorderInternal.ondataavailable = (event) => {
-                        if (event.data.size > 0) {
-                            recordedChunksInternal.push(event.data);
-                            console.log(`Dados de vídeo internos disponíveis. Tamanho: ${event.data.size}`);
-                        }
-                    };
-                    mediaRecorderInternal.onstop = () => {
-                        internalVideoBlob = new Blob(recordedChunksInternal, { type: internalMimeType });
-                        console.log('Gravação interna finalizada. Blob:', internalVideoBlob);
-                        showMessageBox('Gravação da câmera interna finalizada.', 'info');
-                    };
-                    mediaRecorderInternal.onerror = (event) => {
-                        console.error('Erro no MediaRecorder interno:', event.error);
-                        showMessageBox(`Erro na gravação da câmera interna: ${event.error.message}`, 'error');
-                    };
-                    
-                    mediaRecorderInternal.start(1000); // Coleta dados a cada 1 segundo para evitar blobs grandes demais de uma vez
-                    showMessageBox('Gravação da câmera interna iniciada.', 'success');
-                    recordingStarted = true;
-                } catch (e) {
-                    console.error('Erro ao iniciar gravação interna (MediaRecorder):', e);
-                    showMessageBox(`Erro ao iniciar gravação da câmera interna: ${e.message}.`, 'error');
-                }
-            } else {
-                showMessageBox('Câmera interna não ativa para gravação. Verifique as permissões.', 'info');
-            }
-
-            // --- Gravação da Câmera Externa ---
-            if (externalCameraStream) {
-                try {
-                    // Verifica o suporte ao MIME type preferencial
-                    if (MediaRecorder.isTypeSupported(preferredMimeType)) {
-                        externalMimeType = preferredMimeType;
-                    } else if (MediaRecorder.isTypeSupported(fallbackMimeType)) {
-                        externalMimeType = fallbackMimeType;
-                    } else {
-                        showMessageBox('Nenhum formato de vídeo suportado para gravação da câmera externa.', 'error');
-                        console.error('Nenhum formato de vídeo suportado para gravação da câmera externa.');
-                        return; // Não pode gravar se não há suporte
-                    }
-
-                    mediaRecorderExternal = new MediaRecorder(externalCameraStream, { mimeType: externalMimeType });
-                    console.log(`MediaRecorder Externo criado com MIME type: ${externalMimeType}`);
-
-                    mediaRecorderExternal.ondataavailable = (event) => {
-                        if (event.data.size > 0) {
-                            recordedChunksExternal.push(event.data);
-                            console.log(`Dados de vídeo externos disponíveis. Tamanho: ${event.data.size}`);
-                        }
-                    };
-                    mediaRecorderExternal.onstop = () => {
-                        externalVideoBlob = new Blob(recordedChunksExternal, { type: externalMimeType });
-                        console.log('Gravação externa finalizada. Blob:', externalVideoBlob);
-                        showMessageBox('Gravação da câmera externa finalizada.', 'info');
-                    };
-                    mediaRecorderExternal.onerror = (event) => {
-                        console.error('Erro no MediaRecorder externo:', event.error);
-                        showMessageBox(`Erro na gravação da câmera externa: ${event.error.message}`, 'error');
-                    };
-
-                    mediaRecorderExternal.start(1000); // Coleta dados a cada 1 segundo
-                    showMessageBox('Gravação da câmera externa iniciada.', 'success');
-                    recordingStarted = true;
-                } catch (e) {
-                    console.error('Erro ao iniciar gravação externa (MediaRecorder):', e);
-                    showMessageBox(`Erro ao iniciar gravação da câmera externa: ${e.message}.`, 'error');
-                }
-            } else {
-                showMessageBox('Câmera externa não ativa para gravação. Verifique as permissões.', 'info');
-            }
-
-            if (recordingStarted) {
-                isRecording = true;
-                startTimerAndShowOverlays();
-                updateButtonStates();
-                showMessageBox('Gravação de segurança iniciada.', 'success');
-            } else {
-                showMessageBox('Nenhuma câmera disponível para iniciar a gravação ou formato de vídeo não suportado.', 'error');
-            }
-        }
-
-        // Função para parar a gravação e exibir modal de salvamento
-        function stopRecordingAndShowSaveOptions() {
-            if (!isRecording) {
-                showMessageBox('Nenhuma gravação em andamento para parar.', 'info');
-                return;
-            }
-
-            stopSimultaneousRecording(); // Usa a função centralizada
-            
-            showMessageBox('Gravação de segurança parada. Escolha uma opção para salvar.', 'info');
-
-            // Exibe o modal de salvamento
-            saveModalOverlay.classList.add('active');
-        }
-
-        // Funções do IndexedDB
+        // --- Funções do IndexedDB ---
         let dbRequest;
         let dbInstance;
         const DB_NAME = 'VideoStorageDB';
         const DB_VERSION = 1;
         const OBJECT_STORE_NAME = 'videos';
+        const EXPIRATION_TIME_MS = 24 * 60 * 60 * 1000; // 24 horas em milissegundos
 
         function openIndexedDB() {
             return new Promise((resolve, reject) => {
@@ -994,7 +749,6 @@
             });
         }
 
-        // Função para obter um vídeo específico por ID
         async function getVideoById(id) {
             return new Promise(async (resolve, reject) => {
                 try {
@@ -1031,11 +785,10 @@
                     showMessageBox('Vídeo removido com sucesso.', 'success');
                     // Se estiver na tela de player, volta para a lista após excluir
                     if (currentlyPlayingVideoId === id) {
-                        showScreen('savedVideos'); // Volta para a lista
-                        // Limpa o player imediatamente
                         currentVideoPlayer.pause();
                         currentVideoPlayer.removeAttribute('src');
                         currentlyPlayingVideoId = null;
+                        showScreen('savedVideos'); // Volta para a lista
                     }
                     displaySavedVideos(); // Recarrega a lista
                 };
@@ -1049,163 +802,329 @@
             }
         }
 
+        // --- Funções de Controle de Câmera e Gravação ---
 
-        // Função para salvar no Telefone (dispara download e armazena Blob no IndexedDB)
-        async function saveToPhone() {
-            saveModalOverlay.classList.remove('active'); // Esconde o modal
-            let savedCount = 0;
-            const dateTime = formatDateTimeForFilename(); // Obtém a data e hora para o nome
-            const videoIdBase = `${currentUserId || 'anonymous'}_${Date.now()}`; // ID base único para o vídeo no IndexedDB
+        // Função para iniciar as streams das câmeras para visualização
+        async function startCameraStreams() {
+            stopCameraStreams();
 
-            if (internalVideoBlob) {
-                const internalFileName = `video_interno_${dateTime}.webm`;
-                const internalVideoId = `${videoIdBase}_internal`;
-                // Dispara download
-                const url = URL.createObjectURL(internalVideoBlob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = internalFileName;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url); // Libera o URL do objeto imediatamente
-                savedCount++;
+            let internalCameraSuccess = false;
+            let externalCameraSuccess = false;
 
-                // Adiciona ao IndexedDB
-                await addVideoToIndexedDB({
-                    id: internalVideoId,
-                    name: internalFileName,
-                    date: new Date().toLocaleString(),
-                    type: 'internal',
-                    blob: internalVideoBlob // Salva o Blob completo
+            try {
+                internalCameraStream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'user' },
+                    audio: true // Solicita áudio para câmera interna
                 });
+                internalCameraFeed.srcObject = internalCameraStream;
+                showMessageBox('Câmera interna (frontal) ativada.', 'success');
+                internalCameraSuccess = true;
+            } catch (err) {
+                console.error('Erro ao acessar a câmera interna:', err);
+                showMessageBox(`Erro ao iniciar a câmera interna: ${err.name} - ${err.message}. Verifique as permissões.`, 'error');
             }
 
-            if (externalVideoBlob) {
-                const externalFileName = `video_externo_${dateTime}.webm`;
-                const externalVideoId = `${videoIdBase}_external`;
-                // Dispara download
-                const url = URL.createObjectURL(externalVideoBlob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = externalFileName;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url); // Libera o URL do objeto imediatamente
-                savedCount++;
-
-                // Adiciona ao IndexedDB
-                await addVideoToIndexedDB({
-                    id: externalVideoId,
-                    name: externalFileName,
-                    date: new Date().toLocaleString(),
-                    type: 'external',
-                    blob: externalVideoBlob // Salva o Blob completo
+            try {
+                externalCameraStream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'environment' },
+                    audio: true // SOLICITA ÁUDIO PARA CÂMERA EXTERNA TAMBÉM
                 });
+                externalCameraFeed.srcObject = externalCameraStream;
+                showMessageBox('Câmera externa (traseira) ativada.', 'success');
+                externalCameraSuccess = true;
+            } catch (err) {
+                console.error('Erro ao iniciar a câmera externa:', err);
+                // CORREÇÃO: Crase de fechamento faltante no template literal
+                showMessageBox(`Erro ao iniciar a câmera externa: ${err.name} - ${err.message}. Verifique as permissões.`, 'error');
             }
 
-            if (savedCount > 0) {
-                showMessageBox(`Vídeos salvos no seu telefone (${savedCount} arquivos) e no navegador.`, 'success');
+            if (internalCameraSuccess || externalCameraSuccess) {
+                startButton.disabled = false;
             } else {
-                showMessageBox('Nenhum vídeo disponível para salvar.', 'info');
+                startButton.disabled = true;
             }
-            // Resetar blobs após salvamento
-            internalVideoBlob = null;
-            externalVideoBlob = null;
-
-            // Recarregar a lista de vídeos salvos caso o usuário navegue para essa tela
-            displaySavedVideos(); // Garante que a lista esteja atualizada se o usuário for para lá
+            updateButtonStates();
         }
 
-        // Função para cancelar o salvamento
-        function cancelSave() {
-            saveModalOverlay.classList.remove('active'); // Esconde o modal
-            showMessageBox('Salvamento cancelado. Os vídeos não foram salvos.', 'info');
-            // Resetar blobs, pois o usuário decidiu não salvá-los
+        // Função para iniciar a gravação de AMBAS as câmeras (simulação)
+        async function startSimultaneousRecording() {
+            if (isRecording) {
+                showMessageBox('A gravação já está em andamento.', 'info');
+                return;
+            }
+
+            let recordingStarted = false;
+
             internalVideoBlob = null;
             externalVideoBlob = null;
+            recordedChunksInternal = [];
+            recordedChunksExternal = [];
+
+            const preferredMimeType = 'video/webm; codecs=vp9';
+            const fallbackMimeType = 'video/webm';
+            let internalMimeType = '';
+            let externalMimeType = '';
+
+            // --- Gravação da Câmera Interna ---
+            if (internalCameraStream) {
+                try {
+                    if (MediaRecorder.isTypeSupported(preferredMimeType)) {
+                        internalMimeType = preferredMimeType;
+                    } else if (MediaRecorder.isTypeSupported(fallbackMimeType)) {
+                        internalMimeType = fallbackMimeType;
+                    } else {
+                        showMessageBox('Nenhum formato de vídeo suportado para gravação da câmera interna.', 'error');
+                        console.error('Nenhum formato de vídeo suportado para gravação da câmera interna.');
+                    }
+
+                    if (internalMimeType) {
+                        mediaRecorderInternal = new MediaRecorder(internalCameraStream, { mimeType: internalMimeType });
+                        console.log(`MediaRecorder Interno criado com MIME type: ${internalMimeType}`);
+
+                        mediaRecorderInternal.ondataavailable = (event) => {
+                            if (event.data.size > 0) {
+                                recordedChunksInternal.push(event.data);
+                                console.log(`Dados de vídeo internos disponíveis. Tamanho: ${event.data.size}`);
+                            }
+                        };
+                        mediaRecorderInternal.onstop = async () => {
+                            internalVideoBlob = new Blob(recordedChunksInternal, { type: internalMimeType });
+                            console.log('Gravação interna finalizada. Blob:', internalVideoBlob);
+                            if (internalVideoBlob.size > 0) {
+                                const dateTime = formatDateTimeForFilename();
+                                await addVideoToIndexedDB({
+                                    id: `${currentUserId || 'anonymous'}_${Date.now()}_internal`,
+                                    name: `video_interno_${dateTime}.webm`,
+                                    date: new Date().toLocaleString(),
+                                    timestamp: Date.now(),
+                                    type: 'internal',
+                                    blob: internalVideoBlob
+                                });
+                            }
+                        };
+                        mediaRecorderInternal.onerror = (event) => {
+                            console.error('Erro no MediaRecorder interno:', event.error);
+                            showMessageBox(`Erro na gravação da câmera interna: ${event.error.message}`, 'error');
+                        };
+                        
+                        mediaRecorderInternal.start(1000); 
+                        showMessageBox('Gravação da câmera interna iniciada.', 'success');
+                        recordingStarted = true;
+                    }
+                } catch (e) {
+                    console.error('Erro ao iniciar gravação interna (MediaRecorder):', e);
+                    showMessageBox(`Erro ao iniciar gravação da câmera interna: ${e.message}.`, 'error');
+                }
+            } else {
+                showMessageBox('Câmera interna não ativa para gravação. Verifique as permissões.', 'info');
+            }
+
+            // --- Gravação da Câmera Externa ---
+            if (externalCameraStream) {
+                try {
+                    if (MediaRecorder.isTypeSupported(preferredMimeType)) {
+                        externalMimeType = preferredMimeType;
+                    } else if (MediaRecorder.isTypeSupported(fallbackMimeType)) {
+                        externalMimeType = fallbackMimeType;
+                    } else {
+                        showMessageBox('Nenhum formato de vídeo suportado para gravação da câmera externa.', 'error');
+                        console.error('Nenhum formato de vídeo suportado para gravação da câmera externa.');
+                    }
+
+                    if (externalMimeType) {
+                        mediaRecorderExternal = new MediaRecorder(externalCameraStream, { mimeType: externalMimeType });
+                        console.log(`MediaRecorder Externo criado com MIME type: ${externalMimeType}`);
+
+                        mediaRecorderExternal.ondataavailable = (event) => {
+                            if (event.data.size > 0) {
+                                recordedChunksExternal.push(event.data);
+                                console.log(`Dados de vídeo externos disponíveis. Tamanho: ${event.data.size}`);
+                            }
+                        };
+                        mediaRecorderExternal.onstop = async () => {
+                            externalVideoBlob = new Blob(recordedChunksExternal, { type: externalMimeType });
+                            console.log('Gravação externa finalizada. Blob:', externalVideoBlob);
+                            if (externalVideoBlob.size > 0) {
+                                const dateTime = formatDateTimeForFilename();
+                                await addVideoToIndexedDB({
+                                    id: `${currentUserId || 'anonymous'}_${Date.now()}_external`,
+                                    name: `video_externo_${dateTime}.webm`,
+                                    date: new Date().toLocaleString(),
+                                    timestamp: Date.now(),
+                                    type: 'external',
+                                    blob: externalVideoBlob
+                                });
+                            }
+                        };
+                        mediaRecorderExternal.onerror = (event) => {
+                            console.error('Erro no MediaRecorder externo:', event.error);
+                            showMessageBox(`Erro na gravação da câmera externa: ${event.error.message}`, 'error');
+                        };
+
+                        mediaRecorderExternal.start(1000); 
+                        showMessageBox('Gravação da câmera externa iniciada.', 'success');
+                        recordingStarted = true;
+                    }
+                } catch (e) {
+                    console.error('Erro ao iniciar gravação externa (MediaRecorder):', e);
+                    showMessageBox(`Erro ao iniciar gravação da câmera externa: ${e.message}.`, 'error');
+                }
+            } else {
+                showMessageBox('Câmera externa não ativa para gravação. Verifique as permissões.', 'info');
+            }
+
+            if (recordingStarted) {
+                isRecording = true;
+                startTimerAndShowOverlays();
+                updateButtonStates();
+                showMessageBox('Gravação de segurança iniciada.', 'success');
+            } else {
+                showMessageBox('Nenhuma câmera disponível para iniciar a gravação ou formato de vídeo não suportado.', 'error');
+            }
         }
 
-        // Função para exibir a lista de vídeos salvos (agora sem <video>s diretos)
+        // Função para parar a gravação (sem exibir modal de salvamento)
+        function stopRecording() {
+            if (!isRecording) {
+                showMessageBox('Nenhuma gravação em andamento para parar.', 'info');
+                return;
+            }
+
+            stopSimultaneousRecording(); // Usa a função centralizada
+            showMessageBox('Gravação de segurança parada. Os vídeos foram salvos no navegador.', 'info');
+            
+            internalVideoBlob = null;
+            externalVideoBlob = null;
+            displaySavedVideos(); 
+        }
+
+        // Função para exibir a lista de vídeos salvos
         async function displaySavedVideos() {
-            savedVideosList.innerHTML = ''; // Limpa a lista existente
-            const savedVideos = await getVideosFromIndexedDB();
+            savedVideosList.innerHTML = ''; 
+            const allVideos = await getVideosFromIndexedDB();
+            const now = Date.now();
+            let hasNonExpiredVideos = false;
 
-            if (savedVideos.length === 0) {
+            for (const video of allVideos) {
+                const expirationTime = video.timestamp + EXPIRATION_TIME_MS;
+                const timeLeft = expirationTime - now;
+
+                if (timeLeft <= 0) {
+                    await deleteVideoFromIndexedDB(video.id);
+                    showMessageBox(`Vídeo "${video.name}" expirou e foi removido.`, 'info');
+                    continue; 
+                }
+
+                hasNonExpiredVideos = true;
+                const videoItem = document.createElement('div');
+                videoItem.classList.add('saved-video-item');
+                videoItem.dataset.videoId = video.id; 
+                
+                videoItem.onclick = () => playVideo(video.id);
+
+                let timeLeftString;
+                const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+                const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+                if (hours > 0) {
+                    timeLeftString = `Expira em: ${hours}h ${minutes}m`;
+                } else if (minutes > 0) {
+                    timeLeftString = `Expira em: ${minutes}m ${seconds}s`;
+                } else {
+                    timeLeftString = `Expira em: ${seconds}s`;
+                }
+
+                videoItem.innerHTML = `
+                    <p class="video-name-list">${video.name}</p>
+                    <p class="video-date-list">Gravado em: ${video.date}</p>
+                    <p class="video-expiration-info">Expira em: ${timeLeftString}</p>
+                `;
+                savedVideosList.appendChild(videoItem);
+            }
+
+            if (!hasNonExpiredVideos) { 
                 noVideosMessage.classList.remove('hidden');
-                // Certifica-se de que a mensagem "Nenhum vídeo salvo ainda" é o único conteúdo
                 savedVideosList.appendChild(noVideosMessage);
             } else {
-                noVideosMessage.classList.add('hidden'); // Oculta a mensagem "Nenhum vídeo salvo"
-                savedVideos.forEach(video => {
-                    const videoItem = document.createElement('div');
-                    videoItem.classList.add('saved-video-item');
-                    videoItem.dataset.videoId = video.id; // Armazena o ID para acesso posterior
-                    
-                    // Adiciona um evento de clique para abrir o player
-                    videoItem.onclick = () => playVideo(video.id);
+                 noVideosMessage.classList.add('hidden');
+            }
 
-                    videoItem.innerHTML = `
-                        <p class="video-name-list">${video.name}</p>
-                        <p class="video-date-list">Gravado em: ${video.date}</p>
-                    `;
-                    savedVideosList.appendChild(videoItem);
-                });
+            if (hasNonExpiredVideos && !expirationCheckInterval) {
+                expirationCheckInterval = setInterval(() => {
+                    displaySavedVideos(); 
+                }, 30000); 
+            } else if (!hasNonExpiredVideos && expirationCheckInterval) {
+                clearInterval(expirationCheckInterval);
+                expirationCheckInterval = null;
             }
         }
 
-        // NOVA FUNÇÃO: Reproduz um vídeo específico pelo ID do IndexedDB
+        // Função para reproduzir um vídeo específico pelo ID do IndexedDB
         async function playVideo(videoId) {
             const videoData = await getVideoById(videoId);
             if (videoData && videoData.blob) {
-                currentlyPlayingVideoId = videoId; // Armazena o ID do vídeo atual
+                currentlyPlayingVideoId = videoId; 
                 const videoUrl = URL.createObjectURL(videoData.blob);
                 currentVideoPlayer.src = videoUrl;
-                currentVideoPlayer.load(); // Garante que o vídeo seja carregado
-                currentVideoPlayer.play(); // Tenta iniciar a reprodução automaticamente
+                currentVideoPlayer.load(); 
+                currentVideoPlayer.play(); 
 
                 currentVideoNameDisplay.textContent = videoData.name;
                 currentVideoDateDisplay.textContent = `Gravado em: ${videoData.date}`;
                 
-                // Evento para liberar o URL do objeto Blob quando o vídeo puder ser reproduzido
-                // Usamos 'canplay' para garantir que o navegador já processou o blob e está pronto para liberar
+                const expirationTime = videoData.timestamp + EXPIRATION_TIME_MS;
+                const now = Date.now();
+                const timeLeft = expirationTime - now;
+
+                if (timeLeft <= 0) {
+                    currentVideoExpiration.textContent = 'Este vídeo expirou.';
+                    currentVideoExpiration.classList.add('expired');
+                    downloadCurrentVideoButton.disabled = true; 
+                } else {
+                    const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+                    const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                    currentVideoExpiration.textContent = `Expira em: ${hours}h ${minutes}m`;
+                    currentVideoExpiration.classList.remove('expired');
+                    downloadCurrentVideoButton.disabled = false;
+                }
+
                 currentVideoPlayer.oncanplay = () => {
-                    // CUIDADO: Se o vídeo for pausado e depois reproduzido, um novo URL pode ser criado.
-                    // Para simplificar, revocamos apenas uma vez aqui.
-                    // Em apps mais complexos, gerenciar URLs de Blob para reprodução é mais granular.
                     URL.revokeObjectURL(videoUrl); 
                 };
 
-                // Adiciona event listeners para os botões de download e delete na tela do player
                 downloadCurrentVideoButton.onclick = () => {
-                    const urlToDownload = URL.createObjectURL(videoData.blob); // Cria um novo URL para download
+                    const urlToDownload = URL.createObjectURL(videoData.blob); 
                     const a = document.createElement('a');
                     a.href = urlToDownload;
                     a.download = videoData.name;
                     document.body.appendChild(a);
                     a.click();
                     document.body.removeChild(a);
-                    URL.revokeObjectURL(urlToDownload); // Libera o URL do download
+                    URL.revokeObjectURL(urlToDownload); 
                     showMessageBox(`Baixando: ${videoData.name}`, 'info');
                 };
 
                 deleteCurrentVideoButton.onclick = () => {
-                    // Usa o 'confirm' do navegador que é visível
                     if (confirm(`Tem certeza que deseja excluir o vídeo "${videoData.name}"?`)) {
-                        currentVideoPlayer.pause(); // Pausa o vídeo antes de excluir
-                        currentVideoPlayer.removeAttribute('src'); // Limpa a fonte do player para liberar memória
-                        deleteVideoFromIndexedDB(currentlyPlayingVideoId); // Exclui do IndexedDB
-                        currentlyPlayingVideoId = null; // Limpa o ID do vídeo atual
-                        // A função deleteVideoFromIndexedDB chamará displaySavedVideos()
-                        // e showScreen('savedVideos') para retornar à lista atualizada.
+                        currentVideoPlayer.pause(); 
+                        currentVideoPlayer.removeAttribute('src'); 
+                        deleteVideoFromIndexedDB(currentlyPlayingVideoId); 
+                        currentlyPlayingVideoId = null; 
                     }
                 };
 
-                showScreen('videoPlayer'); // Troca para a tela do player
+                showScreen('videoPlayer');
             } else {
                 showMessageBox('Vídeo não encontrado ou Blob corrompido.', 'error');
             }
+        }
+
+        // Função para cancelar o salvamento (mantida por enquanto, mas o modal foi removido)
+        function cancelSave() {
+            showMessageBox('Salvamento cancelado. Os vídeos não foram salvos.', 'info');
+            internalVideoBlob = null;
+            externalVideoBlob = null;
         }
 
 
@@ -1229,9 +1148,10 @@
 
         const topRightLogoutButton = document.getElementById('topRightLogoutButton');
 
-        const saveModalOverlay = document.getElementById('saveModalOverlay');
-        const saveToPhoneButton = document.getElementById('saveToPhoneButton');
-        const cancelSaveButton = document.getElementById('cancelSaveButton');
+        // Removida a referência ao saveModalOverlay e botões internos, pois o modal foi removido
+        // const saveModalOverlay = document.getElementById('saveModalOverlay');
+        // const saveToPhoneButton = document.getElementById('saveToPhoneButton');
+        // const cancelSaveButton = document.getElementById('cancelSaveButton');
 
         const savedVideosScreen = document.getElementById('savedVideosScreen');
         const savedVideosList = document.getElementById('savedVideosList');
@@ -1243,6 +1163,7 @@
         const currentVideoPlayer = document.getElementById('currentVideoPlayer');
         const currentVideoNameDisplay = document.getElementById('currentVideoName');
         const currentVideoDateDisplay = document.getElementById('currentVideoDate');
+        const currentVideoExpiration = document.getElementById('currentVideoExpiration');
         const downloadCurrentVideoButton = document.getElementById('downloadCurrentVideoButton');
         const deleteCurrentVideoButton = document.getElementById('deleteCurrentVideoButton');
         const backToSavedVideosListButton = document.getElementById('backToSavedVideosListButton');
@@ -1250,24 +1171,20 @@
 
         // --- Event Listeners para Botões de Controle ---
         startButton.addEventListener('click', startSimultaneousRecording);
-        stopButton.addEventListener('click', stopRecordingAndShowSaveOptions);
+        stopButton.addEventListener('click', stopRecording); 
         panicButton.addEventListener('click', () => {
             if (isRecording) {
-                stopSimultaneousRecording(); // Usa a função centralizada
+                stopSimultaneousRecording(); 
             }
             showMessageBox('ALERTA DE PÂNICO ATIVADO! Gravação interrompida (simulação de envio de alerta).', 'danger');
             internalVideoBlob = null;
             externalVideoBlob = null;
         });
 
-        // Event Listeners para o Modal de Salvamento
-        saveToPhoneButton.addEventListener('click', saveToPhone);
-        cancelSaveButton.addEventListener('click', cancelSave);
-
         // Event listeners para navegação
         viewSavedVideosButton.addEventListener('click', () => {
             showScreen('savedVideos');
-            displaySavedVideos();
+            displaySavedVideos(); 
         });
         backToAppButton.addEventListener('click', () => {
             showScreen('app');
@@ -1279,7 +1196,7 @@
             currentVideoPlayer.removeAttribute('src');
             currentlyPlayingVideoId = null;
             showScreen('savedVideos');
-            displaySavedVideos();
+            displaySavedVideos(); 
         });
 
         // --- Funções de Login e Logout do Firebase ---
@@ -1289,10 +1206,9 @@
             loginScreen.style.display = 'none';
             appScreen.style.display = 'none';
             savedVideosScreen.style.display = 'none';
-            videoPlayerScreen.style.display = 'none';
+            videoPlayerScreen.style.display = 'none'; 
             topRightLogoutButton.classList.add('hidden');
 
-            // Pausa streams e gravação ao mudar de tela (a menos que esteja indo para appScreen)
             if (screenId !== 'app') {
                 stopSimultaneousRecording();
                 stopCameraStreams();
@@ -1301,6 +1217,10 @@
             switch (screenId) {
                 case 'login':
                     loginScreen.style.display = 'flex';
+                    if (expirationCheckInterval) {
+                        clearInterval(expirationCheckInterval);
+                        expirationCheckInterval = null;
+                    }
                     break;
                 case 'app':
                     appScreen.style.display = 'flex';
@@ -1309,11 +1229,11 @@
                     break;
                 case 'savedVideos':
                     savedVideosScreen.style.display = 'flex';
-                    topRightLogoutButton.classList.remove('hidden');
+                    topRightLogoutButton.classList.remove('hidden'); 
                     break;
                 case 'videoPlayer':
                     videoPlayerScreen.style.display = 'flex';
-                    topRightLogoutButton.classList.remove('hidden');
+                    topRightLogoutButton.classList.remove('hidden'); 
                     break;
             }
         }
