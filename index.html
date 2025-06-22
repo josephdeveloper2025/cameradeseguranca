@@ -193,7 +193,7 @@
         }
 
         /* --- Estilos para as telas de Login e App --- */
-        .login-screen, .app-screen, .saved-videos-screen {
+        .login-screen, .app-screen, .saved-videos-screen, .video-player-screen {
             display: none; /* Controlado via JS */
             width: 100%;
             max-width: 500px;
@@ -206,7 +206,7 @@
             align-items: center;
             gap: 15px;
         }
-        .login-screen h2, .saved-videos-screen h2 {
+        .login-screen h2, .saved-videos-screen h2, .video-player-screen h2 {
             font-size: 1.8rem;
             font-weight: bold;
             color: #333;
@@ -350,56 +350,29 @@
             align-items: center; /* Centraliza o conteúdo (vídeo e texto) */
             gap: 10px;
             width: 100%;
+            cursor: pointer; /* Indica que é clicável */
+            transition: background-color 0.2s ease, transform 0.2s ease;
         }
-        .saved-video-item video {
-            width: 100%; /* Vídeo ocupa 100% da largura do item */
-            height: auto;
-            max-height: 200px; /* Limita a altura do vídeo */
-            border-radius: 8px;
-            object-fit: contain; /* Garante que o vídeo seja totalmente visível dentro do elemento */
-            background-color: black; /* Fundo preto para vídeos com aspect ratio diferente */
+        .saved-video-item:hover {
+            background-color: #eef; /* Leve destaque ao passar o mouse */
+            transform: translateY(-2px); /* Efeito de elevação */
         }
-        .saved-video-item .video-info {
-            width: 100%;
-            text-align: center; /* Centraliza o texto */
-        }
-        .saved-video-item .video-name {
-            font-weight: 700; /* Mais negrito */
-            color: #212121; /* Cor mais escura */
-            font-size: 1em; /* Tamanho padrão */
+        /* Removido o elemento <video> direto dos itens da lista */
+        /* Removido video-info, video-actions direto dos itens da lista */
+
+        .saved-video-item .video-name-list { /* Novo estilo para nome na lista */
+            font-weight: 700;
+            color: #212121;
+            font-size: 1.1em; /* Um pouco maior para ser mais visível */
+            text-align: center;
             word-break: break-all;
         }
-        .saved-video-item .video-date {
-            font-size: 0.85em; /* Levemente maior */
-            color: #757575; /* Cinza médio */
+        .saved-video-item .video-date-list { /* Novo estilo para data na lista */
+            font-size: 0.9em;
+            color: #757575;
+            text-align: center;
         }
-        .saved-video-item .video-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-        }
-        .saved-video-item .video-actions button {
-            padding: 8px 15px;
-            border-radius: 8px;
-            font-size: 0.85em;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        .saved-video-item .video-actions .btn-download {
-            background-color: #4CAF50;
-            color: white;
-        }
-        .saved-video-item .video-actions .btn-download:hover {
-            background-color: #66BB6A;
-        }
-        .saved-video-item .video-actions .btn-delete {
-            background-color: #f44336;
-            color: white;
-        }
-        .saved-video-item .video-actions .btn-delete:hover {
-            background-color: #ef5350;
-        }
+
 
         .saved-videos-screen .back-button {
             background-color: #007bff;
@@ -414,6 +387,88 @@
             gap: 8px;
         }
         .saved-videos-screen .back-button:hover {
+            background-color: #0056b3;
+        }
+
+        /* ESTILOS PARA A NOVA TELA DE REPRODUÇÃO DE VÍDEO */
+        .video-player-screen {
+            display: none; /* Controlado via JS */
+            width: 100%;
+            max-width: 600px; /* Maior para o player */
+            gap: 20px;
+        }
+        .video-player-screen video {
+            width: 100%;
+            height: auto;
+            max-height: 350px; /* Altura máxima do player */
+            background-color: black;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+        .video-player-screen .video-details {
+            text-align: center;
+            width: 100%;
+        }
+        .video-player-screen .video-details p {
+            margin: 5px 0;
+        }
+        .video-player-screen .video-details .video-name {
+            font-weight: 700;
+            font-size: 1.3em;
+            color: #333;
+        }
+        .video-player-screen .video-details .video-date {
+            font-size: 0.9em;
+            color: #666;
+        }
+        .video-player-screen .player-actions {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            width: 100%;
+            flex-wrap: wrap; /* Para quebrar em várias linhas em telas pequenas */
+        }
+        .video-player-screen .player-actions button {
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-size: 0.9em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .video-player-screen .player-actions .btn-download-player {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .video-player-screen .player-actions .btn-download-player:hover {
+            background-color: #66BB6A;
+            transform: translateY(-1px);
+        }
+        .video-player-screen .player-actions .btn-delete-player {
+            background-color: #f44336;
+            color: white;
+        }
+        .video-player-screen .player-actions .btn-delete-player:hover {
+            background-color: #ef5350;
+            transform: translateY(-1px);
+        }
+        .video-player-screen .back-to-list-button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .video-player-screen .back-to-list-button:hover {
             background-color: #0056b3;
         }
     </style>
@@ -486,9 +541,8 @@
     <!-- Modal para Opções de Salvamento -->
     <div id="saveModalOverlay" class="save-modal-overlay">
         <div class="save-modal-content">
-            <h3>Como você gostaria de salvar os vídeos?</h3>
+            <h3>Salvar os vídeos no telefone?</h3>
             <div class="save-modal-actions">
-                <!-- Removido o botão "Salvar no Google Drive" -->
                 <button id="saveToPhoneButton" class="btn-save-phone">Salvar no Telefone</button>
                 <button id="cancelSaveButton" class="btn-cancel-save">Cancelar</button>
             </div>
@@ -499,13 +553,31 @@
     <div id="savedVideosScreen" class="saved-videos-screen">
         <h2 class="text-center">Vídeos Salvos</h2>
         <div id="savedVideosList" class="saved-videos-list">
-            <!-- Os vídeos salvos serão injetados aqui pelo JavaScript -->
+            <!-- Os nomes dos vídeos salvos serão injetados aqui pelo JavaScript como itens clicáveis -->
             <p class="text-gray-500 text-center mt-4" id="noVideosMessage">Nenhum vídeo salvo ainda.</p>
         </div>
         <button id="backToAppButton" class="back-button">
             <i class="fas fa-arrow-left"></i> Voltar
         </button>
     </div>
+
+    <!-- NOVA TELA: Reprodução de Vídeo Individual -->
+    <div id="videoPlayerScreen" class="video-player-screen container">
+        <h2 class="text-center">Reprodução de Vídeo</h2>
+        <video id="currentVideoPlayer" controls autoplay playsinline class="w-full"></video>
+        <div class="video-details">
+            <p id="currentVideoName" class="video-name"></p>
+            <p id="currentVideoDate" class="video-date"></p>
+        </div>
+        <div class="player-actions">
+            <button id="downloadCurrentVideoButton" class="btn-download-player"><i class="fas fa-download"></i> Baixar</button>
+            <button id="deleteCurrentVideoButton" class="btn-delete-player"><i class="fas fa-trash-alt"></i> Excluir</button>
+        </div>
+        <button id="backToSavedVideosListButton" class="back-to-list-button">
+            <i class="fas fa-arrow-left"></i> Voltar para a Lista
+        </button>
+    </div>
+
 
     <!-- Script principal do aplicativo: Consolidado e movido para o final do body -->
     <script type="module">
@@ -533,41 +605,6 @@
         const auth = getAuth(app);
         const db = getFirestore(app); // Inicializa Firestore (mantido)
 
-        // Elementos da UI
-        const internalCameraFeed = document.getElementById('internalCameraFeed');
-        const externalCameraFeed = document.getElementById('externalCameraFeed');
-        const startButton = document.getElementById('startButton');
-        const stopButton = document.getElementById('stopButton');
-        const panicButton = document.getElementById('panicButton');
-        const messageBox = document.getElementById('messageBox');
-        const internalRecordingOverlay = document.getElementById('internalRecordingOverlay');
-        const internalRecordingTimer = document.getElementById('internalRecordingTimer');
-        const externalRecordingOverlay = document.getElementById('externalRecordingOverlay');
-        const externalRecordingTimer = document.getElementById('externalRecordingTimer');
-
-        // Elementos da UI de Login
-        const loginScreen = document.getElementById('loginScreen');
-        const appScreen = document.getElementById('appScreen');
-        const googleSignInButton = document.getElementById('googleSignInButton');
-        const userIdDisplay = document.getElementById('userIdDisplay'); // Elemento para exibir o User ID
-        const userIdValue = document.getElementById('userIdValue'); // Span para o valor do User ID
-
-        // NOVOS ELEMENTOS DA UI FIXOS (SAIR)
-        const topRightLogoutButton = document.getElementById('topRightLogoutButton');
-
-        // Elementos do Modal de Salvamento
-        const saveModalOverlay = document.getElementById('saveModalOverlay');
-        const saveToPhoneButton = document.getElementById('saveToPhoneButton'); // Agora é o único botão de salvamento
-        const cancelSaveButton = document.getElementById('cancelSaveButton');
-
-        // Elementos da Nova Tela de Vídeos Salvos
-        const savedVideosScreen = document.getElementById('savedVideosScreen');
-        const savedVideosList = document.getElementById('savedVideosList');
-        const viewSavedVideosButton = document.getElementById('viewSavedVideosButton');
-        const backToAppButton = document.getElementById('backToAppButton');
-        const noVideosMessage = document.getElementById('noVideosMessage');
-
-
         // Variáveis de estado da câmera e gravação
         let mediaRecorderInternal;
         let mediaRecorderExternal;
@@ -582,9 +619,13 @@
         let timerInterval;
         let secondsRecorded = 0;
 
-        // Armazena os blobs de vídeo para acesso posterior no modal
+        // Armazena os blobs de vídeo para acesso posterior no modal (temporário durante a gravação)
         let internalVideoBlob = null;
         let externalVideoBlob = null;
+
+        // Variável para armazenar o ID do vídeo atualmente sendo reproduzido
+        let currentlyPlayingVideoId = null;
+
 
         // --- Funções de Utilitários ---
 
@@ -671,6 +712,37 @@
             stopButton.disabled = !isRecording;
         }
 
+        // Função para parar gravação e streams (centralizada para evitar repetição)
+        function stopSimultaneousRecording() {
+            if (isRecording) {
+                if (mediaRecorderInternal && mediaRecorderInternal.state !== 'inactive') {
+                    mediaRecorderInternal.stop();
+                }
+                if (mediaRecorderExternal && mediaRecorderExternal.state !== 'inactive') {
+                    mediaRecorderExternal.stop();
+                }
+                isRecording = false;
+                stopTimerAndHideOverlays();
+                updateButtonStates();
+            }
+        }
+
+        // Função para parar todas as streams das câmeras (centralizada para evitar repetição)
+        function stopCameraStreams() {
+            if (internalCameraStream) {
+                internalCameraStream.getTracks().forEach(track => track.stop());
+                internalCameraFeed.srcObject = null;
+                internalCameraStream = null;
+            }
+            if (externalCameraStream) {
+                externalCameraStream.getTracks().forEach(track => track.stop());
+                externalCameraFeed.srcObject = null;
+                externalCameraStream = null;
+            }
+            console.log('Streams das câmeras paradas.');
+        }
+
+
         // --- Funções de Controle de Câmera e Gravação ---
 
         // Função para iniciar as streams das câmeras para visualização
@@ -711,21 +783,6 @@
                 startButton.disabled = true;
             }
             updateButtonStates();
-        }
-
-        // Função para parar todas as streams das câmeras
-        function stopCameraStreams() {
-            if (internalCameraStream) {
-                internalCameraStream.getTracks().forEach(track => track.stop());
-                internalCameraFeed.srcObject = null;
-                internalCameraStream = null;
-            }
-            if (externalCameraStream) {
-                externalCameraStream.getTracks().forEach(track => track.stop());
-                externalCameraFeed.srcObject = null;
-                externalCameraStream = null;
-            }
-            console.log('Streams das câmeras paradas.');
         }
 
         // Função para iniciar a gravação de AMBAS as câmeras (simulação)
@@ -806,16 +863,8 @@
                 return;
             }
 
-            if (mediaRecorderInternal && mediaRecorderInternal.state !== 'inactive') {
-                mediaRecorderInternal.stop();
-            }
-            if (mediaRecorderExternal && mediaRecorderExternal.state !== 'inactive') {
-                mediaRecorderExternal.stop();
-            }
-
-            isRecording = false;
-            stopTimerAndHideOverlays();
-            updateButtonStates();
+            stopSimultaneousRecording(); // Usa a função centralizada
+            
             showMessageBox('Gravação de segurança parada. Escolha uma opção para salvar.', 'info');
 
             // Exibe o modal de salvamento
@@ -897,6 +946,31 @@
             });
         }
 
+        // Função para obter um vídeo específico por ID
+        async function getVideoById(id) {
+            return new Promise(async (resolve, reject) => {
+                try {
+                    const db = await openIndexedDB();
+                    const transaction = db.transaction([OBJECT_STORE_NAME], 'readonly');
+                    const store = transaction.objectStore(OBJECT_STORE_NAME);
+                    const request = store.get(id);
+
+                    request.onsuccess = () => {
+                        resolve(request.result);
+                    };
+
+                    request.onerror = (event) => {
+                        console.error('Erro ao buscar vídeo por ID do IndexedDB:', event.target.errorCode);
+                        showMessageBox('Erro ao carregar o vídeo selecionado.', 'error');
+                        reject(event.target.errorCode);
+                    };
+                } catch (error) {
+                    console.error('Erro ao acessar IndexedDB para buscar por ID:', error);
+                    reject(error);
+                }
+            });
+        }
+
         async function deleteVideoFromIndexedDB(id) {
             try {
                 const db = await openIndexedDB();
@@ -907,6 +981,14 @@
                 request.onsuccess = () => {
                     console.log('Vídeo removido do IndexedDB:', id);
                     showMessageBox('Vídeo removido com sucesso.', 'success');
+                    // Se estiver na tela de player, volta para a lista após excluir
+                    if (currentlyPlayingVideoId === id) {
+                        showScreen('savedVideos'); // Volta para a lista
+                        // Limpa o player imediatamente
+                        currentVideoPlayer.pause();
+                        currentVideoPlayer.removeAttribute('src');
+                        currentlyPlayingVideoId = null;
+                    }
                     displaySavedVideos(); // Recarrega a lista
                 };
 
@@ -925,10 +1007,11 @@
             saveModalOverlay.classList.remove('active'); // Esconde o modal
             let savedCount = 0;
             const dateTime = formatDateTimeForFilename(); // Obtém a data e hora para o nome
-            const videoId = `${currentUserId || 'anonymous'}_${Date.now()}`; // ID único para o vídeo no IndexedDB
+            const videoIdBase = `${currentUserId || 'anonymous'}_${Date.now()}`; // ID base único para o vídeo no IndexedDB
 
             if (internalVideoBlob) {
                 const internalFileName = `video_interno_${dateTime}.webm`;
+                const internalVideoId = `${videoIdBase}_internal`;
                 // Dispara download
                 const url = URL.createObjectURL(internalVideoBlob);
                 const a = document.createElement('a');
@@ -937,12 +1020,12 @@
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
-                URL.revokeObjectURL(url);
+                URL.revokeObjectURL(url); // Libera o URL do objeto imediatamente
                 savedCount++;
 
                 // Adiciona ao IndexedDB
                 await addVideoToIndexedDB({
-                    id: `${videoId}_internal`,
+                    id: internalVideoId,
                     name: internalFileName,
                     date: new Date().toLocaleString(),
                     type: 'internal',
@@ -952,6 +1035,7 @@
 
             if (externalVideoBlob) {
                 const externalFileName = `video_externo_${dateTime}.webm`;
+                const externalVideoId = `${videoIdBase}_external`;
                 // Dispara download
                 const url = URL.createObjectURL(externalVideoBlob);
                 const a = document.createElement('a');
@@ -960,12 +1044,12 @@
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
-                URL.revokeObjectURL(url);
+                URL.revokeObjectURL(url); // Libera o URL do objeto imediatamente
                 savedCount++;
 
                 // Adiciona ao IndexedDB
                 await addVideoToIndexedDB({
-                    id: `${videoId}_external`,
+                    id: externalVideoId,
                     name: externalFileName,
                     date: new Date().toLocaleString(),
                     type: 'external',
@@ -995,71 +1079,130 @@
             externalVideoBlob = null;
         }
 
-        // Função para exibir a lista de vídeos salvos
+        // Função para exibir a lista de vídeos salvos (agora sem <video>s diretos)
         async function displaySavedVideos() {
             savedVideosList.innerHTML = ''; // Limpa a lista existente
             const savedVideos = await getVideosFromIndexedDB();
 
             if (savedVideos.length === 0) {
                 noVideosMessage.classList.remove('hidden');
+                // Certifica-se de que a mensagem "Nenhum vídeo salvo ainda" é o único conteúdo
                 savedVideosList.appendChild(noVideosMessage);
             } else {
                 noVideosMessage.classList.add('hidden'); // Oculta a mensagem "Nenhum vídeo salvo"
                 savedVideos.forEach(video => {
                     const videoItem = document.createElement('div');
                     videoItem.classList.add('saved-video-item');
+                    videoItem.dataset.videoId = video.id; // Armazena o ID para acesso posterior
+                    
+                    // Adiciona um evento de clique para abrir o player
+                    videoItem.onclick = () => playVideo(video.id);
 
-                    const videoElement = document.createElement('video');
-                    videoElement.controls = true;
-                    videoElement.muted = true; // Começa mudo
-                    videoElement.playsInline = true;
-                    videoElement.src = URL.createObjectURL(video.blob); // Cria URL do Blob para reprodução
-                    videoElement.addEventListener('loadedmetadata', () => {
-                        URL.revokeObjectURL(videoElement.src); // Libera o URL do objeto assim que o vídeo é carregado
-                    });
-
-                    const videoInfoDiv = document.createElement('div');
-                    videoInfoDiv.classList.add('video-info');
-                    videoInfoDiv.innerHTML = `
-                        <p class="video-name">${video.name}</p>
-                        <p class="video-date">Gravado em: ${video.date}</p>
+                    videoItem.innerHTML = `
+                        <p class="video-name-list">${video.name}</p>
+                        <p class="video-date-list">Gravado em: ${video.date}</p>
                     `;
-
-                    const videoActionsDiv = document.createElement('div');
-                    videoActionsDiv.classList.add('video-actions');
-
-                    const downloadButton = document.createElement('button');
-                    downloadButton.classList.add('btn-download');
-                    downloadButton.innerHTML = '<i class="fas fa-download"></i> Baixar Novamente';
-                    downloadButton.onclick = () => {
-                        const url = URL.createObjectURL(video.blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = video.name;
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
-                        URL.revokeObjectURL(url);
-                        showMessageBox(`Baixando novamente: ${video.name}`, 'info');
-                    };
-
-                    const deleteButton = document.createElement('button');
-                    deleteButton.classList.add('btn-delete');
-                    deleteButton.innerHTML = '<i class="fas fa-trash-alt"></i> Excluir';
-                    deleteButton.onclick = () => {
-                        deleteVideoFromIndexedDB(video.id);
-                    };
-
-                    videoActionsDiv.appendChild(downloadButton);
-                    videoActionsDiv.appendChild(deleteButton);
-
-                    videoItem.appendChild(videoElement);
-                    videoItem.appendChild(videoInfoDiv);
-                    videoItem.appendChild(videoActionsDiv);
                     savedVideosList.appendChild(videoItem);
                 });
             }
         }
+
+        // NOVA FUNÇÃO: Reproduz um vídeo específico pelo ID do IndexedDB
+        async function playVideo(videoId) {
+            const videoData = await getVideoById(videoId);
+            if (videoData && videoData.blob) {
+                currentlyPlayingVideoId = videoId; // Armazena o ID do vídeo atual
+                const videoUrl = URL.createObjectURL(videoData.blob);
+                currentVideoPlayer.src = videoUrl;
+                currentVideoPlayer.load(); // Garante que o vídeo seja carregado
+                currentVideoPlayer.play(); // Tenta iniciar a reprodução automaticamente
+
+                currentVideoNameDisplay.textContent = videoData.name;
+                currentVideoDateDisplay.textContent = `Gravado em: ${videoData.date}`;
+                
+                // Evento para liberar o URL do objeto Blob quando o vídeo puder ser reproduzido
+                // Usamos 'canplay' para garantir que o navegador já processou o blob e está pronto para liberar
+                currentVideoPlayer.oncanplay = () => {
+                    // CUIDADO: Se o vídeo for pausado e depois reproduzido, um novo URL pode ser criado.
+                    // Para simplificar, revocamos apenas uma vez aqui.
+                    // Em apps mais complexos, gerenciar URLs de Blob para reprodução é mais granular.
+                    URL.revokeObjectURL(videoUrl); 
+                };
+
+                // Adiciona event listeners para os botões de download e delete na tela do player
+                downloadCurrentVideoButton.onclick = () => {
+                    const urlToDownload = URL.createObjectURL(videoData.blob); // Cria um novo URL para download
+                    const a = document.createElement('a');
+                    a.href = urlToDownload;
+                    a.download = videoData.name;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(urlToDownload); // Libera o URL do download
+                    showMessageBox(`Baixando: ${videoData.name}`, 'info');
+                };
+
+                deleteCurrentVideoButton.onclick = () => {
+                    // Usa o 'confirm' do navegador que é visível
+                    if (confirm(`Tem certeza que deseja excluir o vídeo "${videoData.name}"?`)) {
+                        currentVideoPlayer.pause(); // Pausa o vídeo antes de excluir
+                        currentVideoPlayer.removeAttribute('src'); // Limpa a fonte do player para liberar memória
+                        deleteVideoFromIndexedDB(currentlyPlayingVideoId); // Exclui do IndexedDB
+                        currentlyPlayingVideoId = null; // Limpa o ID do vídeo atual
+                        // A função deleteVideoFromIndexedDB chamará displaySavedVideos()
+                        // e showScreen('savedVideos') para retornar à lista atualizada.
+                    }
+                };
+
+                showScreen('videoPlayer'); // Troca para a tela do player
+            } else {
+                showMessageBox('Vídeo não encontrado ou Blob corrompido.', 'error');
+            }
+        }
+
+        // Elementos da UI
+        // Moved element declarations after function definitions to avoid ReferenceError
+        const internalCameraFeed = document.getElementById('internalCameraFeed');
+        const externalCameraFeed = document.getElementById('externalCameraFeed');
+        const startButton = document.getElementById('startButton');
+        const stopButton = document.getElementById('stopButton');
+        const panicButton = document.getElementById('panicButton');
+        const messageBox = document.getElementById('messageBox');
+        const internalRecordingOverlay = document.getElementById('internalRecordingOverlay');
+        const internalRecordingTimer = document.getElementById('internalRecordingTimer');
+        const externalRecordingOverlay = document.getElementById('externalRecordingOverlay');
+        const externalRecordingTimer = document.getElementById('externalRecordingTimer');
+
+        // Elementos da UI de Login
+        const loginScreen = document.getElementById('loginScreen');
+        const appScreen = document.getElementById('appScreen');
+        const googleSignInButton = document.getElementById('googleSignInButton');
+        const userIdDisplay = document.getElementById('userIdDisplay'); // Elemento para exibir o User ID
+        const userIdValue = document.getElementById('userIdValue'); // Span para o valor do User ID
+
+        // NOVOS ELEMENTOS DA UI FIXOS (SAIR)
+        const topRightLogoutButton = document.getElementById('topRightLogoutButton');
+
+        // Elementos do Modal de Salvamento
+        const saveModalOverlay = document.getElementById('saveModalOverlay');
+        const saveToPhoneButton = document.getElementById('saveToPhoneButton'); // Agora é o único botão de salvamento
+        const cancelSaveButton = document.getElementById('cancelSaveButton');
+
+        // Elementos da Nova Tela de Vídeos Salvos
+        const savedVideosScreen = document.getElementById('savedVideosScreen');
+        const savedVideosList = document.getElementById('savedVideosList');
+        const viewSavedVideosButton = document.getElementById('viewSavedVideosButton');
+        const backToAppButton = document.getElementById('backToAppButton');
+        const noVideosMessage = document.getElementById('noVideosMessage');
+
+        // Elementos da NOVA TELA: Reprodução de Vídeo Individual
+        const videoPlayerScreen = document.getElementById('videoPlayerScreen');
+        const currentVideoPlayer = document.getElementById('currentVideoPlayer');
+        const currentVideoNameDisplay = document.getElementById('currentVideoName');
+        const currentVideoDateDisplay = document.getElementById('currentVideoDate');
+        const downloadCurrentVideoButton = document.getElementById('downloadCurrentVideoButton');
+        const deleteCurrentVideoButton = document.getElementById('deleteCurrentVideoButton');
+        const backToSavedVideosListButton = document.getElementById('backToSavedVideosListButton');
 
 
         // --- Event Listeners para Botões de Controle ---
@@ -1068,15 +1211,7 @@
         panicButton.addEventListener('click', () => {
             // Se houver gravação em andamento, pare-a e não mostre o modal de salvamento
             if (isRecording) {
-                 if (mediaRecorderInternal && mediaRecorderInternal.state !== 'inactive') {
-                    mediaRecorderInternal.stop();
-                }
-                if (mediaRecorderExternal && mediaRecorderExternal.state !== 'inactive') {
-                    mediaRecorderExternal.stop();
-                }
-                isRecording = false;
-                stopTimerAndHideOverlays();
-                updateButtonStates();
+                stopSimultaneousRecording(); // Usa a função centralizada
             }
             showMessageBox('ALERTA DE PÂNICO ATIVADO! Gravação interrompida (simulação de envio de alerta).', 'danger');
             // Resetar blobs após alerta de pânico (não salvos)
@@ -1097,29 +1232,48 @@
             showScreen('app'); // Volta para a tela principal do aplicativo
         });
 
+        // Event Listener para o botão de voltar na tela do player
+        backToSavedVideosListButton.addEventListener('click', () => {
+            currentVideoPlayer.pause(); // Pausa o vídeo antes de sair da tela
+            currentVideoPlayer.removeAttribute('src'); // Limpa a fonte para liberar memória
+            currentlyPlayingVideoId = null; // Limpa o ID do vídeo atual
+            showScreen('savedVideos'); // Volta para a lista de vídeos salvos
+            displaySavedVideos(); // Garante que a lista esteja atualizada
+        });
+
         // --- Funções de Login e Logout do Firebase ---
 
-        // Função para mostrar a tela correta (login, app ou savedVideos)
+        // Função para mostrar a tela correta (login, app, savedVideos ou videoPlayer)
         function showScreen(screenId) {
             loginScreen.style.display = 'none';
             appScreen.style.display = 'none';
-            savedVideosScreen.style.display = 'none'; // Nova tela
+            savedVideosScreen.style.display = 'none';
+            videoPlayerScreen.style.display = 'none'; // Nova tela do player
             topRightLogoutButton.classList.add('hidden'); // Oculta por padrão
 
-            if (screenId === 'login') {
-                loginScreen.style.display = 'flex';
-                stopSimultaneousRecording(); // Garante que a gravação pare ao deslogar/sair
+            // Pausa streams e gravação ao mudar de tela (a menos que esteja indo para appScreen)
+            if (screenId !== 'app') {
+                stopSimultaneousRecording(); // Garante que a gravação pare
                 stopCameraStreams(); // Para as streams da câmera
-            } else if (screenId === 'app') {
-                appScreen.style.display = 'flex';
-                topRightLogoutButton.classList.remove('hidden'); // Mostra o botão Sair fixo
-                startCameraStreams(); // Inicia as câmeras apenas quando o app está visível
-            } else if (screenId === 'savedVideos') {
-                savedVideosScreen.style.display = 'flex';
-                topRightLogoutButton.classList.remove('hidden'); // Mantém o botão Sair visível
-                // Não inicia câmeras aqui, pois é uma tela de visualização
-                stopSimultaneousRecording(); // Para gravação se houver ao ir para essa tela
-                stopCameraStreams(); // Para streams de câmera ao ir para essa tela
+            }
+
+            switch (screenId) {
+                case 'login':
+                    loginScreen.style.display = 'flex';
+                    break;
+                case 'app':
+                    appScreen.style.display = 'flex';
+                    topRightLogoutButton.classList.remove('hidden');
+                    startCameraStreams(); // Inicia as câmeras apenas quando o app está visível
+                    break;
+                case 'savedVideos':
+                    savedVideosScreen.style.display = 'flex';
+                    topRightLogoutButton.classList.remove('hidden'); // Mantém o botão Sair visível
+                    break;
+                case 'videoPlayer':
+                    videoPlayerScreen.style.display = 'flex';
+                    topRightLogoutButton.classList.remove('hidden'); // Mantém o botão Sair visível
+                    break;
             }
         }
 
