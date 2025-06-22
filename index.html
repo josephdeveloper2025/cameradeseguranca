@@ -18,7 +18,7 @@
             align-items: center;
             min-height: 100vh; /* Garante que ocupe a altura total da viewport */
             margin: 0;
-            padding: 80px 10px 10px 10px; /* Adiciona padding superior para o elemento fixo */
+            padding: 10px; /* Padding geral */
             box-sizing: border-box;
         }
         /* Container principal do aplicativo */
@@ -34,7 +34,6 @@
             align-items: center;
             padding: 15px; /* Padding ajustado */
             gap: 15px; /* Espaçamento entre seções */
-            margin-top: -70px; /* Compensa o padding do body puxando o container para cima */
         }
         /* Estilos para o grupo de vídeos (câmeras) */
         .video-group {
@@ -211,70 +210,23 @@
             margin-bottom: 20px;
         }
 
-        /* NOVOS ESTILOS PARA AS INFOS DO USUÁRIO FIXAS NO TOPO */
-        .user-info-fixed {
+        /* ESTILOS PARA O BOTÃO SAIR NO CANTO SUPERIOR DIREITO */
+        #topRightLogoutButton {
             position: fixed;
-            top: 15px; /* Posição do topo */
-            left: 15px; /* Posição da esquerda */
-            z-index: 100; /* Garante que esteja acima de outros elementos */
-            background-color: rgba(255, 255, 255, 0.95); /* Fundo branco semi-transparente */
-            backdrop-filter: blur(5px); /* Efeito de desfoque para navegadores modernos */
-            border-radius: 12px; /* Cantos mais arredondados */
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Sombra sutil */
-            padding: 10px 15px; /* Preenchimento reduzido */
-            display: none; /* Inicialmente oculto, controlado por JS */
-            align-items: center;
-            gap: 10px; /* Espaçamento entre os itens */
-            max-width: 300px; /* Limita a largura */
-            transform: translateX(-100%); /* Começa fora da tela para animar a entrada */
-            transition: transform 0.3s ease-out; /* Animação suave */
-        }
-
-        .user-info-fixed.active {
-            display: flex; /* Exibe como flex */
-            transform: translateX(0); /* Desliza para dentro da tela */
-        }
-
-        .user-info-fixed img {
-            width: 40px; /* Imagem menor */
-            height: 40px;
-            border-radius: 50%;
-            border: 2px solid #2196f3;
-            object-fit: cover;
-            flex-shrink: 0; /* Impede que a imagem encolha */
-        }
-
-        .user-info-fixed .user-text-info {
-            display: flex;
-            flex-direction: column;
-            flex-grow: 1; /* Permite que o texto ocupe o espaço disponível */
-            white-space: nowrap; /* Impede que nome/e-mail quebrem linha */
-            overflow: hidden; /* Oculta o que transborda */
-            text-overflow: ellipsis; /* Adiciona "..." se o texto for muito longo */
-        }
-
-        .user-info-fixed .user-text-info p {
-            margin: 0; /* Remove margens padrão de parágrafos */
-            font-size: 0.85em; /* Fonte menor */
-            color: #333;
-        }
-        .user-info-fixed .user-text-info p.font-semibold {
-            font-size: 0.95em; /* Fonte ligeiramente maior para o nome */
-            font-weight: 600;
-        }
-
-        .user-info-fixed .logout-button {
-            padding: 6px 10px; /* Botão menor */
-            font-size: 0.8em; /* Texto do botão menor */
-            margin-left: auto; /* Empurra o botão para a direita */
-            border-radius: 8px;
-            background-color: #ef5350;
+            top: 15px;
+            right: 15px;
+            z-index: 100;
+            padding: 8px 15px;
+            background-color: #ef5350; /* Vermelho */
             color: white;
-            border: none; /* Remove a borda padrão do button */
-            transition: background-color 0.3s ease, transform 0.2s ease;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+            /* Removido display: none; daqui, a classe 'hidden' no HTML controlará isso */
         }
-        .user-info-fixed .logout-button:hover {
+        #topRightLogoutButton:hover {
             background-color: #e53935;
             transform: translateY(-1px);
         }
@@ -303,18 +255,91 @@
             width: 20px;
             height: 20px;
         }
+
+        /* Estilos do Modal de Salvamento */
+        .save-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 200; /* Acima de tudo */
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .save-modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .save-modal-content {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            transform: translateY(-20px);
+            transition: transform 0.3s ease;
+        }
+        .save-modal-overlay.active .save-modal-content {
+            transform: translateY(0);
+        }
+        .save-modal-content h3 {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .save-modal-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .save-modal-actions button {
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-size: 1.0em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+            border: none;
+        }
+        .save-modal-actions .btn-save-drive {
+            background-image: linear-gradient(to right, #4285F4, #669df6); /* Azul Google */
+            color: white;
+        }
+        .save-modal-actions .btn-save-drive:hover {
+            background-image: linear-gradient(to right, #669df6, #8ab7f9);
+            transform: translateY(-1px);
+        }
+        .save-modal-actions .btn-save-phone {
+            background-image: linear-gradient(to right, #1a73e8, #4285F4); /* Azul mais escuro */
+            color: white;
+        }
+        .save-modal-actions .btn-save-phone:hover {
+            background-image: linear-gradient(to right, #4285F4, #669df6);
+            transform: translateY(-1px);
+        }
+        .save-modal-actions .btn-cancel-save {
+            background-color: #f0f0f0;
+            color: #555;
+            border: 1px solid #ddd;
+        }
+        .save-modal-actions .btn-cancel-save:hover {
+            background-color: #e0e0e0;
+        }
     </style>
 </head>
 <body>
-    <!-- NOVO: Informações do Usuário Fixas no Canto Superior Esquerdo -->
-    <div id="userInfoFixed" class="user-info-fixed">
-        <img id="userPictureFixed" src="" alt="Foto do Usuário">
-        <div class="user-text-info">
-            <p id="userNameDisplayFixed" class="font-semibold text-gray-800"></p>
-            <p id="userEmailDisplayFixed" class="text-sm text-gray-600"></p>
-        </div>
-        <button id="logoutButtonFixed" class="logout-button">Sair</button>
-    </div>
+    <!-- Botão Sair Fixo no Canto Superior Direito -->
+    <!-- Adicionada a classe 'hidden' diretamente no HTML para ocultar por padrão -->
+    <button id="topRightLogoutButton" class="hidden">Sair</button>
 
     <!-- Tela de Login -->
     <div id="loginScreen" class="login-screen">
@@ -337,7 +362,6 @@
             App de Segurança do Motorista
         </h1>
 
-        <!-- O bloco user-info-display original foi removido daqui -->
         <!-- O ID do Usuário para depuração permanece dentro do appScreen -->
         <p id="userIdDisplay" class="text-xs text-gray-500 mt-2">ID do Usuário: <span id="userIdValue">N/A</span></p>
 
@@ -374,6 +398,18 @@
         </div>
 
         <div id="messageBox" class="message-box"></div>
+    </div>
+
+    <!-- Modal para Opções de Salvamento -->
+    <div id="saveModalOverlay" class="save-modal-overlay">
+        <div class="save-modal-content">
+            <h3>Como você gostaria de salvar os vídeos?</h3>
+            <div class="save-modal-actions">
+                <button id="saveToDriveButton" class="btn-save-drive">Salvar no Google Drive</button>
+                <button id="saveToPhoneButton" class="btn-save-phone">Salvar no Telefone</button>
+                <button id="cancelSaveButton" class="btn-cancel-save">Cancelar</button>
+            </div>
+        </div>
     </div>
 
     <!-- Script principal do aplicativo: Consolidado e movido para o final do body -->
@@ -421,13 +457,14 @@
         const userIdDisplay = document.getElementById('userIdDisplay'); // Elemento para exibir o User ID
         const userIdValue = document.getElementById('userIdValue'); // Span para o valor do User ID
 
-        // NOVOS ELEMENTOS DA UI FIXOS (USUÁRIO)
-        const userInfoFixed = document.getElementById('userInfoFixed');
-        const userPictureFixed = document.getElementById('userPictureFixed');
-        const userNameDisplayFixed = document.getElementById('userNameDisplayFixed');
-        const userEmailDisplayFixed = document.getElementById('userEmailDisplayFixed');
-        const logoutButtonFixed = document.getElementById('logoutButtonFixed');
+        // NOVOS ELEMENTOS DA UI FIXOS (SAIR)
+        const topRightLogoutButton = document.getElementById('topRightLogoutButton');
 
+        // Elementos do Modal de Salvamento
+        const saveModalOverlay = document.getElementById('saveModalOverlay');
+        const saveToDriveButton = document.getElementById('saveToDriveButton');
+        const saveToPhoneButton = document.getElementById('saveToPhoneButton');
+        const cancelSaveButton = document.getElementById('cancelSaveButton');
 
         // Variáveis de estado da câmera e gravação
         let mediaRecorderInternal;
@@ -437,10 +474,15 @@
         let recordedChunksInternal = [];
         let recordedChunksExternal = [];
         let isRecording = false; // Flag para controlar se ALGUMA gravação está ativa
+        let currentUserId = null; // Para armazenar o ID do usuário logado
+        let currentUserEmail = null; // Para armazenar o e-mail do usuário logado (para salvar no Drive simulado)
 
         let timerInterval;
         let secondsRecorded = 0;
-        let currentUserId = null; // Para armazenar o ID do usuário logado
+
+        // Armazena os blobs de vídeo para acesso posterior no modal
+        let internalVideoBlob = null;
+        let externalVideoBlob = null;
 
         // --- Funções de Utilitários ---
 
@@ -581,17 +623,23 @@
 
             let recordingStarted = false;
 
+            // Zera os blobs anteriores ao iniciar nova gravação
+            internalVideoBlob = null;
+            externalVideoBlob = null;
+            recordedChunksInternal = [];
+            recordedChunksExternal = [];
+
             if (internalCameraStream) {
                 try {
                     mediaRecorderInternal = new MediaRecorder(internalCameraStream);
-                    recordedChunksInternal = [];
                     mediaRecorderInternal.ondataavailable = (event) => {
                         if (event.data.size > 0) recordedChunksInternal.push(event.data);
                     };
                     mediaRecorderInternal.onstop = () => {
-                        const blob = new Blob(recordedChunksInternal, { type: 'video/webm' });
-                        const url = URL.createObjectURL(blob);
-                        console.log('Gravação interna finalizada. URL para download (exemplo):', url);
+                        internalVideoBlob = new Blob(recordedChunksInternal, { type: 'video/webm' });
+                        console.log('Gravação interna finalizada. Blob:', internalVideoBlob);
+                        showMessageBox('Gravação da câmera interna finalizada.', 'info');
+                        // No cenário real, aqui você processaria ou faria upload do blob
                     };
                     mediaRecorderInternal.start();
                     showMessageBox('Gravação da câmera interna iniciada.', 'success');
@@ -607,14 +655,14 @@
             if (externalCameraStream) {
                 try {
                     mediaRecorderExternal = new MediaRecorder(externalCameraStream);
-                    recordedChunksExternal = [];
                     mediaRecorderExternal.ondataavailable = (event) => {
                         if (event.data.size > 0) recordedChunksExternal.push(event.data);
                     };
                     mediaRecorderExternal.onstop = () => {
-                        const blob = new Blob(recordedChunksExternal, { type: 'video/webm' });
-                        const url = URL.createObjectURL(blob);
-                        console.log('Gravação externa finalizada. URL para download (exemplo):', url);
+                        externalVideoBlob = new Blob(recordedChunksExternal, { type: 'video/webm' });
+                        console.log('Gravação externa finalizada. Blob:', externalVideoBlob);
+                        showMessageBox('Gravação da câmera externa finalizada.', 'info');
+                        // No cenário real, aqui você processaria ou faria upload do blob
                     };
                     mediaRecorderExternal.start();
                     showMessageBox('Gravação da câmera externa iniciada.', 'success');
@@ -637,8 +685,8 @@
             }
         }
 
-        // Função para parar a gravação
-        function stopSimultaneousRecording() {
+        // Função para parar a gravação e exibir modal de salvamento
+        function stopRecordingAndShowSaveOptions() {
             if (!isRecording) {
                 showMessageBox('Nenhuma gravação em andamento para parar.', 'info');
                 return;
@@ -654,16 +702,101 @@
             isRecording = false;
             stopTimerAndHideOverlays();
             updateButtonStates();
-            showMessageBox('Gravação de segurança parada.', 'success');
+            showMessageBox('Gravação de segurança parada. Escolha uma opção para salvar.', 'info');
+
+            // Exibe o modal de salvamento
+            saveModalOverlay.classList.add('active');
+        }
+
+        // Função para salvar no Google Drive (simulado)
+        function saveToGoogleDrive() {
+            saveModalOverlay.classList.remove('active'); // Esconde o modal
+            if (currentUserId && currentUserEmail) {
+                showMessageBox(`Simulando salvamento no Google Drive para ${currentUserEmail}... (Funcionalidade real exige integração com Google Drive API)`, 'authentic');
+                console.log(`[SIMULAÇÃO] Salvar vídeo interno no Google Drive para ${currentUserEmail}. Blob:`, internalVideoBlob);
+                console.log(`[SIMULAÇÃO] Salvar vídeo externo no Google Drive para ${currentUserEmail}. Blob:`, externalVideoBlob);
+            } else {
+                showMessageBox('Não foi possível salvar no Google Drive: usuário não logado ou e-mail não disponível.', 'error');
+            }
+            // Resetar blobs após a "tentativa" de salvamento
+            internalVideoBlob = null;
+            externalVideoBlob = null;
+        }
+
+        // Função para salvar no Telefone (dispara download)
+        function saveToPhone() {
+            saveModalOverlay.classList.remove('active'); // Esconde o modal
+            let savedCount = 0;
+
+            if (internalVideoBlob) {
+                const url = URL.createObjectURL(internalVideoBlob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `video_interno_${new Date().toISOString()}.webm`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                savedCount++;
+            }
+
+            if (externalVideoBlob) {
+                const url = URL.createObjectURL(externalVideoBlob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `video_externo_${new Date().toISOString()}.webm`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                savedCount++;
+            }
+
+            if (savedCount > 0) {
+                showMessageBox(`Vídeos salvos no seu telefone (${savedCount} arquivos).`, 'success');
+            } else {
+                showMessageBox('Nenhum vídeo disponível para salvar.', 'info');
+            }
+            // Resetar blobs após salvamento
+            internalVideoBlob = null;
+            externalVideoBlob = null;
+        }
+
+        // Função para cancelar o salvamento
+        function cancelSave() {
+            saveModalOverlay.classList.remove('active'); // Esconde o modal
+            showMessageBox('Salvamento cancelado. Os vídeos não foram salvos.', 'info');
+            // Resetar blobs, pois o usuário decidiu não salvá-los
+            internalVideoBlob = null;
+            externalVideoBlob = null;
         }
 
         // --- Event Listeners para Botões de Controle ---
         startButton.addEventListener('click', startSimultaneousRecording);
-        stopButton.addEventListener('click', stopSimultaneousRecording);
+        stopButton.addEventListener('click', stopRecordingAndShowSaveOptions); // Chama a função que exibe o modal
         panicButton.addEventListener('click', () => {
-            stopSimultaneousRecording(); // Para qualquer gravação em andamento
+            // Se houver gravação em andamento, pare-a e não mostre o modal de salvamento
+            if (isRecording) {
+                 if (mediaRecorderInternal && mediaRecorderInternal.state !== 'inactive') {
+                    mediaRecorderInternal.stop();
+                }
+                if (mediaRecorderExternal && mediaRecorderExternal.state !== 'inactive') {
+                    mediaRecorderExternal.stop();
+                }
+                isRecording = false;
+                stopTimerAndHideOverlays();
+                updateButtonStates();
+            }
             showMessageBox('ALERTA DE PÂNICO ATIVADO! Gravação interrompida (simulação de envio de alerta).', 'danger');
+            // Resetar blobs após alerta de pânico (não salvos)
+            internalVideoBlob = null;
+            externalVideoBlob = null;
         });
+
+        // Event Listeners para o Modal de Salvamento
+        saveToDriveButton.addEventListener('click', saveToGoogleDrive);
+        saveToPhoneButton.addEventListener('click', saveToPhone);
+        cancelSaveButton.addEventListener('click', cancelSave);
 
         // --- Funções de Login e Logout do Firebase ---
 
@@ -672,13 +805,13 @@
             if (screenId === 'login') {
                 loginScreen.style.display = 'flex';
                 appScreen.style.display = 'none';
-                userInfoFixed.classList.remove('active'); // Esconde o painel de usuário
+                topRightLogoutButton.classList.add('hidden'); // Esconde o botão Sair fixo
                 stopSimultaneousRecording(); // Garante que a gravação pare ao deslogar/sair
                 stopCameraStreams(); // Para as streams da câmera
             } else if (screenId === 'app') {
                 loginScreen.style.display = 'none';
                 appScreen.style.display = 'flex';
-                userInfoFixed.classList.add('active'); // Mostra o painel de usuário
+                topRightLogoutButton.classList.remove('hidden'); // Mostra o botão Sair fixo
                 startCameraStreams(); // Inicia as câmeras apenas quando o app está visível
             }
         }
@@ -709,7 +842,7 @@
         });
 
         // Event listener para o botão de logout do painel fixo
-        logoutButtonFixed.addEventListener('click', async () => {
+        topRightLogoutButton.addEventListener('click', async () => {
             try {
                 await signOut(auth);
                 console.log("Usuário deslogado.");
@@ -725,26 +858,15 @@
             if (user) {
                 // Usuário está logado
                 currentUserId = user.uid; // Define o ID do usuário logado
-                userNameDisplayFixed.textContent = user.displayName || "Usuário";
-                userEmailDisplayFixed.textContent = user.email || "Sem e-mail";
-                if (user.photoURL) {
-                    userPictureFixed.src = user.photoURL;
-                    userPictureFixed.classList.remove('hidden'); // Certifica que a imagem não está oculta
-                } else {
-                    userPictureFixed.src = "https://placehold.co/40x40/cccccc/333333?text=User"; // Fallback placeholder
-                    userPictureFixed.classList.remove('hidden');
-                }
+                currentUserEmail = user.email; // Armazena o e-mail do usuário logado
                 userIdValue.textContent = currentUserId; // Exibe o ID do usuário no appScreen
-                showScreen('app'); // Mostra a tela principal e o painel fixo
+                showScreen('app'); // Mostra a tela principal
                 showMessageBox(`Bem-vindo(a), ${user.displayName || 'Usuário'}!`, 'success');
 
             } else {
                 // Usuário não está logado
                 currentUserId = null; // Limpa o ID do usuário
-                userNameDisplayFixed.textContent = "";
-                userEmailDisplayFixed.textContent = "";
-                userPictureFixed.src = "";
-                userPictureFixed.classList.add('hidden'); // Oculta a imagem
+                currentUserEmail = null; // Limpa o e-mail
                 userIdValue.textContent = "N/A"; // Limpa o ID do usuário no display
                 showScreen('login'); // Mostra a tela de login
             }
