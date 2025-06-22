@@ -627,7 +627,7 @@
         let currentlyPlayingVideoId = null;
 
 
-        // --- Funções de Utilitários ---
+        // --- Funções Auxiliares (movidas para o topo do escopo para evitar ReferenceError) ---
 
         // Função para formatar o tempo em MM:SS
         function formatTime(totalSeconds) {
@@ -718,7 +718,7 @@
                 if (mediaRecorderInternal && mediaRecorderInternal.state !== 'inactive') {
                     mediaRecorderInternal.stop();
                 }
-                if (mediaRecorderExternal && mediaRecorderExternal.state !== 'inactive') {
+                if (mediaRecorderExternal && mediaRecorderExternal.deviceState !== 'inactive') { // Correção aqui: deviceState para MediaStreamTrack
                     mediaRecorderExternal.stop();
                 }
                 isRecording = false;
@@ -800,50 +800,98 @@
             recordedChunksInternal = [];
             recordedChunksExternal = [];
 
+            // Define um MIME type preferencial e um fallback
+            const preferredMimeType = 'video/webm; codecs=vp9';
+            const fallbackMimeType = 'video/webm';
+            let internalMimeType = '';
+            let externalMimeType = '';
+
+            // --- Gravação da Câmera Interna ---
             if (internalCameraStream) {
                 try {
-                    mediaRecorderInternal = new MediaRecorder(internalCameraStream);
+                    // Verifica o suporte ao MIME type preferencial
+                    if (MediaRecorder.isTypeSupported(preferredMimeType)) {
+                        internalMimeType = preferredMimeType;
+                    } else if (MediaRecorder.isTypeSupported(fallbackMimeType)) {
+                        internalMimeType = fallbackMimeType;
+                    } else {
+                        showMessageBox('Nenhum formato de vídeo suportado para gravação da câmera interna.', 'error');
+                        console.error('Nenhum formato de vídeo suportado para gravação da câmera interna.');
+                        return; // Não pode gravar se não há suporte
+                    }
+
+                    mediaRecorderInternal = new MediaRecorder(internalCameraStream, { mimeType: internalMimeType });
+                    console.log(`MediaRecorder Interno criado com MIME type: ${internalMimeType}`);
+
                     mediaRecorderInternal.ondataavailable = (event) => {
-                        if (event.data.size > 0) recordedChunksInternal.push(event.data);
+                        if (event.data.size > 0) {
+                            recordedChunksInternal.push(event.data);
+                            console.log(`Dados de vídeo internos disponíveis. Tamanho: ${event.data.size}`);
+                        }
                     };
                     mediaRecorderInternal.onstop = () => {
-                        internalVideoBlob = new Blob(recordedChunksInternal, { type: 'video/webm' });
+                        internalVideoBlob = new Blob(recordedChunksInternal, { type: internalMimeType });
                         console.log('Gravação interna finalizada. Blob:', internalVideoBlob);
                         showMessageBox('Gravação da câmera interna finalizada.', 'info');
-                        // No cenário real, aqui você processaria ou faria upload do blob
                     };
-                    mediaRecorderInternal.start();
+                    mediaRecorderInternal.onerror = (event) => {
+                        console.error('Erro no MediaRecorder interno:', event.error);
+                        showMessageBox(`Erro na gravação da câmera interna: ${event.error.message}`, 'error');
+                    };
+                    
+                    mediaRecorderInternal.start(1000); // Coleta dados a cada 1 segundo para evitar blobs grandes demais de uma vez
                     showMessageBox('Gravação da câmera interna iniciada.', 'success');
                     recordingStarted = true;
                 } catch (e) {
-                    console.error('Erro ao iniciar gravação interna:', e);
-                    showMessageBox('Erro ao iniciar gravação da câmera interna.', 'error');
+                    console.error('Erro ao iniciar gravação interna (MediaRecorder):', e);
+                    showMessageBox(`Erro ao iniciar gravação da câmera interna: ${e.message}.`, 'error');
                 }
             } else {
-                showMessageBox('Câmera interna não ativa para gravação.', 'info');
+                showMessageBox('Câmera interna não ativa para gravação. Verifique as permissões.', 'info');
             }
 
+            // --- Gravação da Câmera Externa ---
             if (externalCameraStream) {
                 try {
-                    mediaRecorderExternal = new MediaRecorder(externalCameraStream);
+                    // Verifica o suporte ao MIME type preferencial
+                    if (MediaRecorder.isTypeSupported(preferredMimeType)) {
+                        externalMimeType = preferredMimeType;
+                    } else if (MediaRecorder.isTypeSupported(fallbackMimeType)) {
+                        externalMimeType = fallbackMimeType;
+                    } else {
+                        showMessageBox('Nenhum formato de vídeo suportado para gravação da câmera externa.', 'error');
+                        console.error('Nenhum formato de vídeo suportado para gravação da câmera externa.');
+                        return; // Não pode gravar se não há suporte
+                    }
+
+                    mediaRecorderExternal = new MediaRecorder(externalCameraStream, { mimeType: externalMimeType });
+                    console.log(`MediaRecorder Externo criado com MIME type: ${externalMimeType}`);
+
                     mediaRecorderExternal.ondataavailable = (event) => {
-                        if (event.data.size > 0) recordedChunksExternal.push(event.data);
+                        if (event.data.size > 0) {
+                            recordedChunksExternal.push(event.data);
+                            console.log(`Dados de vídeo externos disponíveis. Tamanho: ${event.data.size}`);
+                        }
                     };
                     mediaRecorderExternal.onstop = () => {
-                        externalVideoBlob = new Blob(recordedChunksExternal, { type: 'video/webm' });
+                        externalVideoBlob = new Blob(recordedChunksExternal, { type: externalMimeType });
                         console.log('Gravação externa finalizada. Blob:', externalVideoBlob);
                         showMessageBox('Gravação da câmera externa finalizada.', 'info');
-                        // No cenário real, aqui você processaria ou faria upload do blob
                     };
-                    mediaRecorderExternal.start();
+                    mediaRecorderExternal.onerror = (event) => {
+                        console.error('Erro no MediaRecorder externo:', event.error);
+                        showMessageBox(`Erro na gravação da câmera externa: ${event.error.message}`, 'error');
+                    };
+
+                    mediaRecorderExternal.start(1000); // Coleta dados a cada 1 segundo
                     showMessageBox('Gravação da câmera externa iniciada.', 'success');
                     recordingStarted = true;
                 } catch (e) {
-                    console.error('Erro ao iniciar gravação externa:', e);
-                    showMessageBox('Erro ao iniciar gravação da câmera externa.', 'error');
+                    console.error('Erro ao iniciar gravação externa (MediaRecorder):', e);
+                    showMessageBox(`Erro ao iniciar gravação da câmera externa: ${e.message}.`, 'error');
                 }
             } else {
-                showMessageBox('Câmera externa não ativa para gravação.', 'info');
+                showMessageBox('Câmera externa não ativa para gravação. Verifique as permissões.', 'info');
             }
 
             if (recordingStarted) {
@@ -852,7 +900,7 @@
                 updateButtonStates();
                 showMessageBox('Gravação de segurança iniciada.', 'success');
             } else {
-                showMessageBox('Nenhuma câmera disponível para iniciar a gravação.', 'error');
+                showMessageBox('Nenhuma câmera disponível para iniciar a gravação ou formato de vídeo não suportado.', 'error');
             }
         }
 
@@ -1160,8 +1208,8 @@
             }
         }
 
-        // Elementos da UI
-        // Moved element declarations after function definitions to avoid ReferenceError
+
+        // --- Declaração de Elementos da UI (movida para depois das funções que os usam) ---
         const internalCameraFeed = document.getElementById('internalCameraFeed');
         const externalCameraFeed = document.getElementById('externalCameraFeed');
         const startButton = document.getElementById('startButton');
@@ -1173,29 +1221,24 @@
         const externalRecordingOverlay = document.getElementById('externalRecordingOverlay');
         const externalRecordingTimer = document.getElementById('externalRecordingTimer');
 
-        // Elementos da UI de Login
         const loginScreen = document.getElementById('loginScreen');
         const appScreen = document.getElementById('appScreen');
         const googleSignInButton = document.getElementById('googleSignInButton');
-        const userIdDisplay = document.getElementById('userIdDisplay'); // Elemento para exibir o User ID
-        const userIdValue = document.getElementById('userIdValue'); // Span para o valor do User ID
+        const userIdDisplay = document.getElementById('userIdDisplay');
+        const userIdValue = document.getElementById('userIdValue');
 
-        // NOVOS ELEMENTOS DA UI FIXOS (SAIR)
         const topRightLogoutButton = document.getElementById('topRightLogoutButton');
 
-        // Elementos do Modal de Salvamento
         const saveModalOverlay = document.getElementById('saveModalOverlay');
-        const saveToPhoneButton = document.getElementById('saveToPhoneButton'); // Agora é o único botão de salvamento
+        const saveToPhoneButton = document.getElementById('saveToPhoneButton');
         const cancelSaveButton = document.getElementById('cancelSaveButton');
 
-        // Elementos da Nova Tela de Vídeos Salvos
         const savedVideosScreen = document.getElementById('savedVideosScreen');
         const savedVideosList = document.getElementById('savedVideosList');
         const viewSavedVideosButton = document.getElementById('viewSavedVideosButton');
         const backToAppButton = document.getElementById('backToAppButton');
         const noVideosMessage = document.getElementById('noVideosMessage');
 
-        // Elementos da NOVA TELA: Reprodução de Vídeo Individual
         const videoPlayerScreen = document.getElementById('videoPlayerScreen');
         const currentVideoPlayer = document.getElementById('currentVideoPlayer');
         const currentVideoNameDisplay = document.getElementById('currentVideoName');
@@ -1207,38 +1250,36 @@
 
         // --- Event Listeners para Botões de Controle ---
         startButton.addEventListener('click', startSimultaneousRecording);
-        stopButton.addEventListener('click', stopRecordingAndShowSaveOptions); // Chama a função que exibe o modal
+        stopButton.addEventListener('click', stopRecordingAndShowSaveOptions);
         panicButton.addEventListener('click', () => {
-            // Se houver gravação em andamento, pare-a e não mostre o modal de salvamento
             if (isRecording) {
                 stopSimultaneousRecording(); // Usa a função centralizada
             }
             showMessageBox('ALERTA DE PÂNICO ATIVADO! Gravação interrompida (simulação de envio de alerta).', 'danger');
-            // Resetar blobs após alerta de pânico (não salvos)
             internalVideoBlob = null;
             externalVideoBlob = null;
         });
 
         // Event Listeners para o Modal de Salvamento
-        saveToPhoneButton.addEventListener('click', saveToPhone); // Apenas o botão de salvar no telefone
+        saveToPhoneButton.addEventListener('click', saveToPhone);
         cancelSaveButton.addEventListener('click', cancelSave);
 
         // Event listeners para navegação
         viewSavedVideosButton.addEventListener('click', () => {
-            showScreen('savedVideos'); // Vai para a tela de vídeos salvos
-            displaySavedVideos(); // Atualiza a lista quando a tela é mostrada
+            showScreen('savedVideos');
+            displaySavedVideos();
         });
         backToAppButton.addEventListener('click', () => {
-            showScreen('app'); // Volta para a tela principal do aplicativo
+            showScreen('app');
         });
 
         // Event Listener para o botão de voltar na tela do player
         backToSavedVideosListButton.addEventListener('click', () => {
-            currentVideoPlayer.pause(); // Pausa o vídeo antes de sair da tela
-            currentVideoPlayer.removeAttribute('src'); // Limpa a fonte para liberar memória
-            currentlyPlayingVideoId = null; // Limpa o ID do vídeo atual
-            showScreen('savedVideos'); // Volta para a lista de vídeos salvos
-            displaySavedVideos(); // Garante que a lista esteja atualizada
+            currentVideoPlayer.pause();
+            currentVideoPlayer.removeAttribute('src');
+            currentlyPlayingVideoId = null;
+            showScreen('savedVideos');
+            displaySavedVideos();
         });
 
         // --- Funções de Login e Logout do Firebase ---
@@ -1248,13 +1289,13 @@
             loginScreen.style.display = 'none';
             appScreen.style.display = 'none';
             savedVideosScreen.style.display = 'none';
-            videoPlayerScreen.style.display = 'none'; // Nova tela do player
-            topRightLogoutButton.classList.add('hidden'); // Oculta por padrão
+            videoPlayerScreen.style.display = 'none';
+            topRightLogoutButton.classList.add('hidden');
 
             // Pausa streams e gravação ao mudar de tela (a menos que esteja indo para appScreen)
             if (screenId !== 'app') {
-                stopSimultaneousRecording(); // Garante que a gravação pare
-                stopCameraStreams(); // Para as streams da câmera
+                stopSimultaneousRecording();
+                stopCameraStreams();
             }
 
             switch (screenId) {
@@ -1264,15 +1305,15 @@
                 case 'app':
                     appScreen.style.display = 'flex';
                     topRightLogoutButton.classList.remove('hidden');
-                    startCameraStreams(); // Inicia as câmeras apenas quando o app está visível
+                    startCameraStreams();
                     break;
                 case 'savedVideos':
                     savedVideosScreen.style.display = 'flex';
-                    topRightLogoutButton.classList.remove('hidden'); // Mantém o botão Sair visível
+                    topRightLogoutButton.classList.remove('hidden');
                     break;
                 case 'videoPlayer':
                     videoPlayerScreen.style.display = 'flex';
-                    topRightLogoutButton.classList.remove('hidden'); // Mantém o botão Sair visível
+                    topRightLogoutButton.classList.remove('hidden');
                     break;
             }
         }
@@ -1281,11 +1322,9 @@
         googleSignInButton.addEventListener('click', async () => {
             const provider = new GoogleAuthProvider();
             try {
-                // Tenta fazer login com um pop-up
                 const result = await signInWithPopup(auth, provider);
                 const user = result.user;
                 console.log("Usuário logado:", user);
-                // onAuthStateChanged irá lidar com a atualização da UI
             } catch (error) {
                 console.error("Erro no login com Google:", error);
                 let errorMessage = "Erro desconhecido ao tentar login com Google.";
@@ -1307,7 +1346,6 @@
             try {
                 await signOut(auth);
                 console.log("Usuário deslogado.");
-                // onAuthStateChanged irá lidar com a atualização da UI
             } catch (error) {
                 console.error("Erro ao deslogar:", error);
                 showMessageBox(`Erro ao deslogar: ${error.message}`, 'error');
@@ -1317,19 +1355,16 @@
         // --- Gerenciamento de Estado de Autenticação com Firebase ---
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                // Usuário está logado
-                currentUserId = user.uid; // Define o ID do usuário logado
-                currentUserEmail = user.email; // Armazena o e-mail do usuário logado
-                userIdValue.textContent = currentUserId; // Exibe o ID do usuário no appScreen
-                showScreen('app'); // Mostra a tela principal
+                currentUserId = user.uid;
+                currentUserEmail = user.email;
+                userIdValue.textContent = currentUserId;
+                showScreen('app');
                 showMessageBox(`Bem-vindo(a), ${user.displayName || 'Usuário'}!`, 'success');
-
             } else {
-                // Usuário não está logado
-                currentUserId = null; // Limpa o ID do usuário
-                currentUserEmail = null; // Limpa o e-mail
-                userIdValue.textContent = "N/A"; // Limpa o ID do usuário no display
-                showScreen('login'); // Mostra a tela de login
+                currentUserId = null;
+                currentUserEmail = null;
+                userIdValue.textContent = "N/A";
+                showScreen('login');
             }
             updateButtonStates();
         });
